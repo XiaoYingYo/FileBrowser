@@ -1,0 +1,2 @@
+cd /d "%~dp0"
+npm install tailwindcss@3.4.17 postcss@latest autoprefixer@latest && npm install -D @tailwindcss/forms @tailwindcss/container-queries && npx tailwindcss -i ./src/input.css -o ./dist/output.css
