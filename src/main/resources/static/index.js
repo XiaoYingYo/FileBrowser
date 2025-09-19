@@ -350,6 +350,7 @@ class TabManager {
         this.clipboard = null;
         activeTab.refresh();
         this.updateActionButtons();
+        window.notificationCenter.addNotification(`${this.clipboard.sourcePaths.length}个文件已成功${this.clipboard.operation === 'cut' ? '移动' : '复制'}到 ${destinationPath}`, 'success');
       }
     }
   }
@@ -384,6 +385,7 @@ class TabManager {
         if (result && result.undoId) {
           activeTab.refresh();
           window.showUndoToast(result.undoId);
+          window.notificationCenter.addNotification(`${paths.length} 个项目已移至回收站`, 'info');
         }
       }
     }
@@ -527,6 +529,35 @@ class TabManager {
 document.addEventListener('DOMContentLoaded', () => {
   const tabManager = new TabManager();
   window.tabManager = tabManager;
+  const notificationCenter = new NotificationCenter();
+  window.notificationCenter = notificationCenter;
+
+  // 添加示例通知以供演示
+  window.notificationCenter.addNotificationDetails({
+    title: '系统',
+    icon: 'settings',
+    iconColor: 'text-blue-400',
+    time: '刚才',
+    message: 'Windows 更新已可用。请重启以安装。',
+    buttons: [{ text: '立即重启', primary: true }, { text: '稍后提醒我' }],
+  });
+
+  window.notificationCenter.addNotificationDetails({
+    title: '安全中心',
+    icon: 'security',
+    iconColor: 'text-green-400',
+    time: '1 小时前',
+    message: '已完成扫描。未发现威胁。',
+  });
+
+  window.notificationCenter.addNotificationDetails({
+    title: '邮件',
+    icon: 'mail',
+    iconColor: 'text-yellow-400',
+    time: '昨天',
+    message: '来自张三：项目进展顺利，详情见附件。',
+  });
+
   if (!tabManager.loadState()) {
     tabManager.addTab();
   }
