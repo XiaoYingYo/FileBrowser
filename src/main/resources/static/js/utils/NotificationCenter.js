@@ -153,6 +153,9 @@ class NotificationCenter {
     if (typeof notification === 'string') {
       notification = { message: notification };
     }
+    if (notification.message && typeof notification.message === 'string') {
+      notification.message = notification.message.replace(/\n/g, '<br>');
+    }
     const newNotification = {
       id: Date.now().toString(36) + Math.random().toString(36).substr(2),
       source: '系统',
