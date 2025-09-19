@@ -5,54 +5,7 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>File Explorer</title>
     <link href="./dist/output.css" rel="stylesheet">
-    <style>
-      @font-face {
-        font-family: 'Material Icons';
-        font-style: normal;
-        font-weight: 400;
-        src: url(./woff/IuiaDsNc.woff2) format('woff2');
-      }
-
-      .material-icons {
-        font-family: 'Material Icons';
-        font-weight: normal;
-        font-style: normal;
-        font-size: 24px;
-        line-height: 1;
-        letter-spacing: normal;
-        text-transform: none;
-        display: inline-block;
-        white-space: nowrap;
-        word-wrap: normal;
-        direction: ltr;
-        -webkit-font-feature-settings: 'liga';
-        -webkit-font-smoothing: antialiased;
-      }
-      
-      body {
-        font-family: 'Segoe UI', sans-serif;
-      }
-      .progress-bar {
-        background-color: #4a4a4a;
-        border-radius: 2px;
-        overflow: hidden;
-        height: 5px;
-      }
-      .progress-bar-fill {
-        background-color: #4a90e2;
-        height: 100%;
-      }
-      .terminal-controls button {
-        background-color: transparent;
-        border: none;
-        color: white;
-        padding: 0.25rem;
-        border-radius: 0.25rem;
-      }
-      .terminal-controls button:hover {
-        background-color: #3e3e3e;
-      }
-    </style>
+    <link href="./index.css" rel="stylesheet">
   </head>
   <style id="view-mode-style">
   </style>
@@ -63,13 +16,6 @@
           <div class="flex items-center bg-[#2d2d2d] px-3 py-2 border-r border-gray-700">
             <span class="material-icons text-yellow-500 text-base mr-2">folder</span>
             <span class="text-sm">此电脑</span>
-            <button class="ml-2 p-0.5 hover:bg-gray-600 rounded">
-              <span class="material-icons text-xs">close</span>
-            </button>
-          </div>
-          <div class="flex items-center px-3 py-2 border-r border-gray-700">
-            <span class="material-icons text-yellow-500 text-base mr-2">folder</span>
-            <span class="text-sm">下载</span>
             <button class="ml-2 p-0.5 hover:bg-gray-600 rounded">
               <span class="material-icons text-xs">close</span>
             </button>

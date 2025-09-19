@@ -1,5 +1,6 @@
-document.addEventListener('DOMContentLoaded', async function () {
+async function loadDisks() {
   try {
+    document.getElementById('path-input').value = '此电脑';
     const [disksResponse, diskTemplateResponse] = await Promise.all([fetch('/api/disks'), fetch('./tpl/viewMode/disk.html')]);
     if (!disksResponse.ok) {
       throw new Error(`HTTP error! status: ${disksResponse.status}`);
@@ -30,8 +31,12 @@ document.addEventListener('DOMContentLoaded', async function () {
       });
     });
   } catch (error) {
-    console.error('Error fetching data:', error);
+    console.error('Error fetching disk data:', error);
   }
+}
+
+document.addEventListener('DOMContentLoaded', async function () {
+  await loadDisks();
 
   const pathInput = document.getElementById('path-input');
   const backButton = document.getElementById('back-button');
@@ -39,17 +44,23 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   backButton.addEventListener('click', async () => {
     const currentPath = pathInput.value;
-    if (currentPath.includes('\\')) {
-      const parentPath = currentPath.substring(0, currentPath.lastIndexOf('\\'));
+    const lastSlashIndex = currentPath.lastIndexOf('\\');
+
+    if (lastSlashIndex < 3 && currentPath.includes(':\\')) {
+      await loadDisks();
+    } else {
+      const parentPath = currentPath.substring(0, lastSlashIndex);
       if (parentPath) {
         await loadFiles(parentPath);
+      } else {
+        await loadDisks();
       }
     }
   });
 
   refreshButton.addEventListener('click', async () => {
     const currentPath = pathInput.value;
-    if (currentPath) {
+    if (currentPath && currentPath !== '此电脑') {
       await loadFiles(currentPath);
     }
   });
@@ -57,8 +68,10 @@ document.addEventListener('DOMContentLoaded', async function () {
   pathInput.addEventListener('keydown', async (event) => {
     if (event.key === 'Enter') {
       const newPath = pathInput.value;
-      if (newPath) {
+      if (newPath && newPath.trim() !== '' && newPath !== '此电脑') {
         await loadFiles(newPath);
+      } else {
+        await loadDisks();
       }
     }
   });
@@ -67,21 +80,16 @@ document.addEventListener('DOMContentLoaded', async function () {
 async function loadFiles(path) {
   try {
     document.getElementById('path-input').value = path;
-    const [filesResponse, listCssResponse, listTemplateResponse] = await Promise.all([fetch(`/api/files?path=${encodeURIComponent(path)}`), fetch('./tpl/viewMode/css/list.css'), fetch('./tpl/viewMode/list.html')]);
+    const [filesResponse, listTemplateResponse] = await Promise.all([fetch(`/api/files?path=${encodeURIComponent(path)}`), fetch('./tpl/viewMode/list.html')]);
     if (!filesResponse.ok) {
       throw new Error(`HTTP error! status: ${filesResponse.status}`);
-    }
-    if (!listCssResponse.ok) {
-      throw new Error(`HTTP error! status: ${listCssResponse.status}`);
     }
     if (!listTemplateResponse.ok) {
       throw new Error(`HTTP error! status: ${listTemplateResponse.status}`);
     }
     const files = await filesResponse.json();
-    const listCss = await listCssResponse.text();
     let listTemplate = await listTemplateResponse.text();
 
-    document.getElementById('view-mode-style').innerHTML = listCss;
     const parser = new DOMParser();
     const doc = parser.parseFromString(listTemplate, 'text/html');
     const newListContent = doc.querySelector('.w-full');
