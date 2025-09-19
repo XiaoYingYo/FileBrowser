@@ -68,9 +68,13 @@ body {
 }
 .marked-copy {
   outline: 2px solid rgb(59, 131, 246);
+  /* 增强左右的可见性 */
+  outline-offset: -2px;
 }
 .marked-cut {
   outline: 2px solid rgb(255, 0, 0);
+  /* 增强左右的可见性 */
+  outline-offset: -2px;
 }
 .no-select {
   user-select: none;
