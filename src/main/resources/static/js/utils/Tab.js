@@ -77,6 +77,7 @@ class Tab {
     this.terminalContentElement.className = 'h-full';
     this.terminalContentElement.style.display = 'none';
     this.terminalContentElement.style.width = '100%';
+    this.terminalContentElement.style.borderTop = '2px solid #333333';
     this.terminalContentElement.innerHTML = `<div class="terminal-container flex flex-col h-full" style="width: 100%;">
         <div class="terminal-tabs flex border-b border-gray-700">
           <!-- Terminal tabs will be dynamically inserted here -->
