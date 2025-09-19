@@ -350,7 +350,6 @@ class TabManager {
         this.clipboard = null;
         activeTab.refresh();
         this.updateActionButtons();
-        window.notificationCenter.addNotification(`${this.clipboard.sourcePaths.length}个文件已成功${this.clipboard.operation === 'cut' ? '移动' : '复制'}到 ${destinationPath}`, 'success');
       }
     }
   }
@@ -386,20 +385,13 @@ class TabManager {
         window.notificationCenter.addNotification({
           message: paths.join('\n') + '\n1分钟后彻底删除!',
           icon: 'info',
+          ttl: 60000, // 1分钟后自动过期
           actions: [
             {
               label: '撤销',
               primary: true,
-              onClick: async () => {
-                const undoResult = await callApi('/api/undo-delete', 'POST', {
-                  action: 'undo',
-                  undoId: result.undoId,
-                });
-                if (undoResult) {
-                  activeTab.refresh();
-                  window.notificationCenter.addNotification('操作已撤销', 'success');
-                }
-              },
+              actionType: 'undoDelete', // 使用 actionType 标识行为
+              payload: { undoId: result.undoId } // 传递可序列化的数据
             },
           ],
         });
@@ -545,8 +537,28 @@ class TabManager {
 document.addEventListener('DOMContentLoaded', () => {
   const tabManager = new TabManager();
   window.tabManager = tabManager;
+  
+  // 定义全局通知Action处理器
+  window.notificationActionHandlers = {
+    'undoDelete': async (payload) => {
+      const activeTab = window.tabManager.getActiveTab();
+      if (!activeTab || !payload || !payload.undoId) return;
+      
+      const undoResult = await callApi('/api/undo-delete', 'POST', {
+        action: 'undo',
+        undoId: payload.undoId,
+      });
+
+      if (undoResult) {
+        activeTab.refresh();
+        window.notificationCenter.addNotification('操作已撤销', 'success');
+      }
+    }
+  };
+
   const notificationCenter = new NotificationCenter('#notification-center', '#notification-center-button', '#notification-center-mask');
   window.notificationCenter = notificationCenter;
+  
   if (!tabManager.loadState()) {
     tabManager.addTab();
   }
