@@ -232,22 +232,19 @@ class Tab {
     this.updateItemCount();
   }
   handleItemClick(event, item, element) {
+    event.preventDefault();
     event.stopPropagation();
     const isCtrlPressed = event.ctrlKey || event.metaKey;
     const isShiftPressed = event.shiftKey;
     if (isShiftPressed && this.lastSelectedItem) {
-      try {
-        this.clearSelection(false);
-        const lastIndex = this.allItems.findIndex((i) => i.path === this.lastSelectedItem.path);
-        const currentIndex = this.allItems.findIndex((i) => i.path === item.path);
-        const start = Math.min(lastIndex, currentIndex);
-        const end = Math.max(lastIndex, currentIndex);
-        for (let i = start; i <= end; i++) {
-          this.selectedItems.add(this.allItems[i]);
-        }
-      } catch (e) {
-        console.error('Error during shift-click selection:', e);
-        debugger;
+      const lastItem = this.lastSelectedItem;
+      this.clearSelection(false);
+      const lastIndex = this.allItems.findIndex((i) => i.path === lastItem.path);
+      const currentIndex = this.allItems.findIndex((i) => i.path === item.path);
+      const start = Math.min(lastIndex, currentIndex);
+      const end = Math.max(lastIndex, currentIndex);
+      for (let i = start; i <= end; i++) {
+        this.selectedItems.add(this.allItems[i]);
       }
     } else if (isCtrlPressed) {
       if (this.selectedItems.has(item)) {
