@@ -11,6 +11,7 @@ class NotificationCenter {
 
     this.notificationContainer = this.panel.querySelector('.overflow-y-auto');
     this.clearAllButton = this.panel.querySelector('.text-blue-400');
+    this.countElement = this.button.querySelector('span:last-child');
 
     this.init();
   }
@@ -26,6 +27,7 @@ class NotificationCenter {
     }
 
     this.mask.addEventListener('click', () => this.hide());
+    this.updateCount();
   }
 
   toggle() {
@@ -76,10 +78,25 @@ class NotificationCenter {
 
     notificationEl.querySelector('.close-notification').addEventListener('click', () => {
         notificationEl.remove();
+        this.updateCount();
     });
+    this.updateCount();
   }
 
   clearAll() {
     this.notificationContainer.innerHTML = '';
+    this.updateCount();
+  }
+
+  updateCount() {
+    const count = this.notificationContainer.children.length;
+    if (this.countElement) {
+        this.countElement.textContent = count;
+        if (count > 0) {
+            this.countElement.style.display = 'inline-block';
+        } else {
+            this.countElement.style.display = 'none';
+        }
+    }
   }
 }

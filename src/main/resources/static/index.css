@@ -97,3 +97,15 @@ body {
 .close-notification:hover {
   color: white;
 }
+
+
+#notification-center-button > span:last-child {
+  background-color: #ef4444; /* red-500 */
+  color: white;
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+  text-align: center;
+}
