@@ -3,52 +3,41 @@ class NotificationCenter {
     this.panel = document.querySelector(panelSelector);
     this.button = document.querySelector(buttonSelector);
     this.mask = document.querySelector(maskSelector);
-
     if (!this.panel || !this.button || !this.mask) {
       console.error('NotificationCenter: 未找到面板、按钮或蒙版元素。');
       return;
     }
-
     this.notificationContainer = this.panel.querySelector('.overflow-y-auto');
     this.clearAllButton = this.panel.querySelector('.text-blue-400');
     this.countElement = this.button.querySelector('span:last-child');
-
     this.init();
   }
-
   init() {
     this.button.addEventListener('click', (e) => {
       e.stopPropagation();
       this.toggle();
     });
-
     if (this.clearAllButton) {
       this.clearAllButton.addEventListener('click', () => this.clearAll());
     }
-
     this.mask.addEventListener('click', () => this.hide());
     this.updateCount();
   }
-
   toggle() {
     this.panel.classList.toggle('active');
     this.mask.classList.toggle('active');
   }
-
   show() {
     this.panel.classList.add('active');
     this.mask.classList.add('active');
   }
-
   hide() {
     this.panel.classList.remove('active');
     this.mask.classList.remove('active');
   }
-
   addNotification({ icon, iconClass, source, time, message, actions }) {
     const notificationEl = document.createElement('div');
     notificationEl.className = 'bg-[#2d2d2d] p-3 rounded-lg';
-
     let actionsHtml = '';
     if (actions && actions.length > 0) {
       actionsHtml = '<div class="flex justify-end mt-3 space-x-2">';
@@ -57,7 +46,6 @@ class NotificationCenter {
       });
       actionsHtml += '</div>';
     }
-
     notificationEl.innerHTML = `
       <div class="flex justify-between items-start">
         <div class="flex items-center space-x-2">
@@ -72,22 +60,17 @@ class NotificationCenter {
       <p class="text-sm mt-2">${message}</p>
       ${actionsHtml}
     `;
-
-    // 新通知添加到顶部
     this.notificationContainer.prepend(notificationEl);
-
     notificationEl.querySelector('.close-notification').addEventListener('click', () => {
         notificationEl.remove();
         this.updateCount();
     });
     this.updateCount();
   }
-
   clearAll() {
     this.notificationContainer.innerHTML = '';
     this.updateCount();
   }
-
   updateCount() {
     const count = this.notificationContainer.children.length;
     if (this.countElement) {
