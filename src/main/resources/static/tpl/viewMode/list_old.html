@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>File Explorer</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <style>
+      body {
+        font-family: 'Segoe UI', sans-serif;
+      }
+      .progress-bar {
+        background-color: #4a4a4a;
+        border-radius: 2px;
+        overflow: hidden;
+        height: 5px;
+      }
+      .progress-bar-fill {
+        background-color: #4a90e2;
+        height: 100%;
+      }
+      .terminal-controls button {
+        background-color: transparent;
+        border: none;
+        color: white;
+        padding: 0.25rem;
+        border-radius: 0.25rem;
+      }
+      .terminal-controls button:hover {
+        background-color: #3e3e3e;
+      }
+    </style>
+  </head>
+  <body class="bg-[#1e1e1e] text-white">
+    <div class="flex flex-col h-screen">
+      <div class="flex items-center border-b border-gray-700">
+        <div class="flex items-center space-x-2">
+          <div class="flex items-center bg-[#2d2d2d] px-3 py-2 border-r border-gray-700">
+            <span class="material-icons text-yellow-500 text-base mr-2">folder</span>
+            <span class="text-sm">此电脑</span>
+            <button class="ml-2 p-0.5 hover:bg-gray-600 rounded">
+              <span class="material-icons text-xs">close</span>
+            </button>
+          </div>
+          <div class="flex items-center px-3 py-2 border-r border-gray-700">
+            <span class="material-icons text-yellow-500 text-base mr-2">folder</span>
+            <span class="text-sm">下载</span>
+            <button class="ml-2 p-0.5 hover:bg-gray-600 rounded">
+              <span class="material-icons text-xs">close</span>
+            </button>
+          </div>
+        </div>
+        <button class="p-2 hover:bg-gray-700 rounded-full">
+          <span class="material-icons text-base">add</span>
+        </button>
+      </div>
+      <div class="flex items-center p-2 border-b border-gray-700">
+        <div class="flex items-center space-x-2">
+          <button class="p-1 hover:bg-gray-700 rounded disabled:opacity-50" disabled="">
+            <span class="material-icons">arrow_back</span>
+          </button>
+          <button class="p-1 hover:bg-gray-700 rounded">
+            <span class="material-icons">arrow_forward</span>
+          </button>
+          <button class="p-1 hover:bg-gray-700 rounded">
+            <span class="material-icons">expand_more</span>
+          </button>
+          <button class="p-1 hover:bg-gray-700 rounded">
+            <span class="material-icons">arrow_upward</span>
+          </button>
+        </div>
+        <div class="flex-grow mx-4">
+          <div class="relative">
+            <span class="material-icons absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">computer</span>
+            <input class="w-full bg-gray-800 border border-gray-600 rounded-sm py-1 pl-8 pr-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" value="此电脑" />
+          </div>
+        </div>
+        <div class="relative w-64">
+          <span class="material-icons absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+          <input class="w-full bg-gray-800 border border-gray-600 rounded-sm py-1 pl-8 pr-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="在 此电脑 中搜索" type="text" />
+        </div>
+      </div>
+      <div class="flex items-center p-2 border-b border-gray-700 space-x-4">
+        <button class="flex items-center space-x-1 px-2 py-1 bg-blue-600 rounded-md text-sm">
+          <span class="material-icons text-base">add</span>
+          <span>新建</span>
+        </button>
+        <div class="flex items-center space-x-2">
+          <button class="p-1 hover:bg-gray-700 rounded">
+            <span class="material-icons text-base">content_cut</span>
+          </button>
+          <button class="p-1 hover:bg-gray-700 rounded">
+            <span class="material-icons text-base">content_copy</span>
+          </button>
+          <button class="p-1 hover:bg-gray-700 rounded">
+            <span class="material-icons text-base">content_paste</span>
+          </button>
+          <button class="p-1 hover:bg-gray-700 rounded">
+            <span class="material-icons text-base">drive_file_rename_outline</span>
+          </button>
+          <button class="p-1 hover:bg-gray-700 rounded">
+            <span class="material-icons text-base">share</span>
+          </button>
+          <button class="p-1 hover:bg-gray-700 rounded">
+            <span class="material-icons text-base">delete</span>
+          </button>
+        </div>
+        <button class="flex items-center space-x-1 px-2 py-1 hover:bg-gray-700 rounded-md text-sm">
+          <span class="material-icons text-base">sort</span>
+          <span>排序</span>
+          <span class="material-icons text-base">expand_more</span>
+        </button>
+        <button class="flex items-center space-x-1 px-2 py-1 hover:bg-gray-700 rounded-md text-sm">
+          <span class="material-icons text-base">view_list</span>
+          <span>查看</span>
+          <span class="material-icons text-base">expand_more</span>
+        </button>
+        <button class="p-1 hover:bg-gray-700 rounded">
+          <span class="material-icons text-base">more_horiz</span>
+        </button>
+        <div class="flex-grow"></div>
+        <button class="flex items-center space-x-1 px-2 py-1 hover:bg-gray-700 rounded-md text-sm">
+          <span class="material-icons text-base">info</span>
+          <span>详细信息</span>
+        </button>
+      </div>
+      <main class="flex-grow p-4 overflow-auto">
+        <div class="w-full">
+          <div class="grid grid-cols-[1fr_150px_100px] gap-x-4 px-2 pb-2 border-b border-gray-700 text-sm text-gray-400">
+            <div class="flex items-center cursor-pointer hover:text-white">
+              <span>名称</span>
+              <span class="material-icons text-base ml-1">arrow_downward</span>
+            </div>
+            <div class="flex items-center cursor-pointer hover:text-white">
+              <span>修改日期</span>
+            </div>
+            <div class="flex items-center cursor-pointer hover:text-white">
+              <span>大小</span>
+            </div>
+          </div>
+          <div class="divide-y divide-gray-800">
+            <div class="grid grid-cols-[1fr_150px_100px] gap-x-4 items-center p-2 hover:bg-gray-700 rounded-md cursor-pointer">
+              <div class="flex items-center">
+                <span class="material-icons text-yellow-500 text-xl mr-3">folder</span>
+                <span class="text-sm">文档</span>
+              </div>
+              <span class="text-sm text-gray-400">2023/10/27 10:30</span>
+              <span class="text-sm text-gray-400"></span>
+            </div>
+            <div class="grid grid-cols-[1fr_150px_100px] gap-x-4 items-center p-2 hover:bg-gray-700 rounded-md cursor-pointer">
+              <div class="flex items-center">
+                <span class="material-icons text-yellow-500 text-xl mr-3">folder</span>
+                <span class="text-sm">下载</span>
+              </div>
+              <span class="text-sm text-gray-400">2023/10/27 09:15</span>
+              <span class="text-sm text-gray-400"></span>
+            </div>
+            <div class="grid grid-cols-[1fr_150px_100px] gap-x-4 items-center p-2 hover:bg-gray-700 rounded-md cursor-pointer">
+              <div class="flex items-center">
+                <span class="material-icons text-blue-400 text-xl mr-3">image</span>
+                <span class="text-sm">背景.jpg</span>
+              </div>
+              <span class="text-sm text-gray-400">2023/09/12 14:45</span>
+              <span class="text-sm text-gray-400">1.2 MB</span>
+            </div>
+            <div class="grid grid-cols-[1fr_150px_100px] gap-x-4 items-center p-2 hover:bg-gray-700 rounded-md cursor-pointer">
+              <div class="flex items-center">
+                <span class="material-icons text-red-500 text-xl mr-3">picture_as_pdf</span>
+                <span class="text-sm">报告.pdf</span>
+              </div>
+              <span class="text-sm text-gray-400">2023/10/25 18:02</span>
+              <span class="text-sm text-gray-400">5.6 MB</span>
+            </div>
+            <div class="grid grid-cols-[1fr_150px_100px] gap-x-4 items-center p-2 hover:bg-gray-700 rounded-md cursor-pointer">
+              <div class="flex items-center">
+                <span class="material-icons text-gray-400 text-xl mr-3">description</span>
+                <span class="text-sm">笔记.txt</span>
+              </div>
+              <span class="text-sm text-gray-400">2023/08/01 11:20</span>
+              <span class="text-sm text-gray-400">12 KB</span>
+            </div>
+          </div>
+        </div>
+      </main>
+      <div class="border-t border-gray-700">
+        <div class="bg-[#0c0c0c] rounded-t-lg">
+          <div class="flex items-center border-b border-gray-700">
+            <div class="flex items-center">
+              <div class="flex items-center bg-[#1e1e1e] px-3 py-2 border-r border-gray-700">
+                <span class="material-icons text-base mr-2">terminal</span>
+                <span class="text-sm">命令提示符</span>
+                <button class="ml-2 p-0.5 hover:bg-gray-600 rounded">
+                  <span class="material-icons text-xs">close</span>
+                </button>
+              </div>
+              <div class="flex items-center px-3 py-2 border-r border-gray-700">
+                <span class="material-icons text-base mr-2">terminal</span>
+                <span class="text-sm">命令提示符</span>
+                <button class="ml-2 p-0.5 hover:bg-gray-600 rounded">
+                  <span class="material-icons text-xs">close</span>
+                </button>
+              </div>
+              <button class="p-2 hover:bg-gray-700 rounded-full">
+                <span class="material-icons text-base">add</span>
+              </button>
+            </div>
+            <div class="flex-grow"></div>
+            <div class="flex items-center space-x-2 terminal-controls pr-2">
+              <button>
+                <span class="material-icons text-sm">remove</span>
+              </button>
+              <button>
+                <span class="material-icons text-sm" style="font-size: 14px">check_box_outline_blank</span>
+              </button>
+              <button>
+                <span class="material-icons text-sm">close</span>
+              </button>
+            </div>
+          </div>
+          <div class="p-4 font-mono text-sm h-48 overflow-y-auto bg-black">
+            <p class="text-white" contenteditable="false">Microsoft Windows [版本 10.0.19042.1288]</p>
+            <p class="text-white" contenteditable="false">(c) Microsoft Corporation. All rights reserved.</p>
+            <br />
+            <div class="flex items-start">
+              <span class="text-white whitespace-pre" contenteditable="false">C:\Users\User&gt; </span>
+              <div class="flex-grow" contenteditable="true">
+                <span class="ml-1 bg-white w-2 h-4 animate-pulse inline-block"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="p-2 border-t border-gray-700 text-xs text-gray-400">
+        <span>5 个项目 |</span>
+      </footer>
+    </div>
+  </body>
+</html>

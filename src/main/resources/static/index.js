@@ -67,7 +67,6 @@ async function loadFiles(path) {
       fileElementHtml = fileElementHtml.replace('{{fileName}}', file.name);
       fileElementHtml = fileElementHtml.replace('{{lastModified}}', new Date(file.lastModified).toLocaleString());
       fileElementHtml = fileElementHtml.replace('{{fileSize}}', file.isDirectory ? '' : formatBytes(file.size));
-      
       const fileElement = document.createElement('div');
       fileElement.innerHTML = fileElementHtml;
       fileListContainer.appendChild(fileElement.firstElementChild);
