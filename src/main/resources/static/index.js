@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const tabManager = new TabManager();
   window.tabManager = tabManager;
   window.notificationActionHandlers = {
-    'undoDelete': async (payload, notificationId) => {
+    undoDelete: async (payload, notificationId) => {
       const activeTab = window.tabManager.getActiveTab();
       if (!activeTab || !payload || !payload.undoId) return;
       const undoResult = await callApi('/api/undo-delete', 'POST', {
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
           window.notificationCenter.removeNotification(notificationId);
         }
       }
-    }
+    },
   };
   const notificationCenter = new NotificationCenter('#notification-center', '#notification-center-button', '#notification-center-mask');
   window.notificationCenter = notificationCenter;
@@ -48,3 +48,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+const terminalContainer = document.getElementById('terminal-container');
+const terminalResizer = document.getElementById('terminal-resizer');
+const terminalMinimizeButton = document.getElementById('terminal-minimize-button');
+const minimizeIcon = terminalMinimizeButton.querySelector('.material-icons');
+const updateTerminalIcon = () => {
+  if (terminalContainer.classList.contains('collapsed')) {
+    minimizeIcon.textContent = 'web_asset';
+  } else {
+    minimizeIcon.textContent = 'remove';
+  }
+};
+const toggleTerminal = () => {
+  terminalContainer.classList.toggle('collapsed');
+  localStorage.setItem('terminalCollapsed', terminalContainer.classList.contains('collapsed'));
+  updateTerminalIcon();
+};
+terminalMinimizeButton.addEventListener('click', toggleTerminal);
+terminalResizer.addEventListener('click', (e) => {
+  if (e.target === terminalResizer) {
+    toggleTerminal();
+  }
+});
+updateTerminalIcon();

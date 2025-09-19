@@ -103,9 +103,10 @@
         </div>
         <div class="flex-grow overflow-y-auto px-4 space-y-3" id="notification-list"></div>
       </div>
-      <div class="border-t border-gray-700">
+      <div id="terminal-container" class="border-t border-gray-700">
+        <div id="terminal-resizer" class="h-2 cursor-ns-resize"></div>
         <div class="bg-[#0c0c0c] rounded-t-lg">
-          <div class="flex items-center border-b border-gray-700">
+          <div id="terminal-header" class="flex items-center border-b border-gray-700">
             <div class="flex items-center">
               <div class="flex items-center bg-[#1e1e1e] px-3 py-2 border-r border-gray-700">
                 <span class="material-icons text-base mr-2">terminal</span>
@@ -124,7 +125,7 @@
             </div>
             <div class="flex-grow"></div>
             <div class="flex items-center space-x-2 terminal-controls pr-2">
-              <button>
+              <button id="terminal-minimize-button">
                 <span class="material-icons text-sm">remove</span>
               </button>
               <button>
@@ -135,12 +136,12 @@
               </button>
             </div>
           </div>
-          <div class="p-4 font-mono text-sm h-48 overflow-y-auto bg-black">
+          <div id="terminal-body" class="p-4 font-mono text-sm h-48 overflow-y-auto bg-black">
             <p class="text-white" contenteditable="false">Microsoft Windows [版本 10.0.19042.1288]</p>
             <p class="text-white" contenteditable="false">(c) Microsoft Corporation. All rights reserved.</p>
             <br />
             <div class="flex items-start">
-              <span class="text-white whitespace-pre" contenteditable="false">C:\Users\User&gt; </span>
+              <span class="text-white whitespace-pre" contenteditable="false">C:\Users\User> </span>
               <div class="flex-grow" contenteditable="true"></div>
             </div>
           </div>

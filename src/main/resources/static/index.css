@@ -202,3 +202,9 @@ body {
 .btn.btn-primary:hover {
   background-color: #2563eb;
 }
+#terminal-resizer {
+  background-color: #3e3e3e;
+}
+#terminal-container.collapsed #terminal-body {
+  display: none;
+}
