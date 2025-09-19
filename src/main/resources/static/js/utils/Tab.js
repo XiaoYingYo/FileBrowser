@@ -20,7 +20,7 @@ class Tab {
       this.setTitle(initialState.title);
     }
     this.eventHandlers = {
-      'clipboard-update': (payload) => this.updateItemMarks()
+      'clipboard-update': (payload) => this.updateItemMarks(),
     };
     this.createContentElement();
   }
@@ -236,13 +236,18 @@ class Tab {
     const isCtrlPressed = event.ctrlKey || event.metaKey;
     const isShiftPressed = event.shiftKey;
     if (isShiftPressed && this.lastSelectedItem) {
-      this.clearSelection(false);
-      const lastIndex = this.allItems.findIndex((i) => i.path === this.lastSelectedItem.path);
-      const currentIndex = this.allItems.findIndex((i) => i.path === item.path);
-      const start = Math.min(lastIndex, currentIndex);
-      const end = Math.max(lastIndex, currentIndex);
-      for (let i = start; i <= end; i++) {
-        this.selectedItems.add(this.allItems[i]);
+      try {
+        this.clearSelection(false);
+        const lastIndex = this.allItems.findIndex((i) => i.path === this.lastSelectedItem.path);
+        const currentIndex = this.allItems.findIndex((i) => i.path === item.path);
+        const start = Math.min(lastIndex, currentIndex);
+        const end = Math.max(lastIndex, currentIndex);
+        for (let i = start; i <= end; i++) {
+          this.selectedItems.add(this.allItems[i]);
+        }
+      } catch (e) {
+        console.error('Error during shift-click selection:', e);
+        debugger;
       }
     } else if (isCtrlPressed) {
       if (this.selectedItems.has(item)) {
@@ -272,7 +277,7 @@ class Tab {
     });
   }
   updateItemMarks() {
-    this.contentElement.querySelectorAll('[data-item-id]').forEach(el => {
+    this.contentElement.querySelectorAll('[data-item-id]').forEach((el) => {
       const itemId = el.dataset.itemId;
       const mark = localStorage.getItem(`${itemId}_mark_temp`);
       el.classList.remove('marked-cut', 'marked-copy');
