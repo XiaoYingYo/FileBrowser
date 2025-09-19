@@ -31,17 +31,21 @@ class TabManager {
     document.getElementById('home-button').addEventListener('click', () => this.getActiveTab()?.loadPath(''));
     document.getElementById('back-button').addEventListener('click', () => {
       const currentPath = this.pathInput.value;
+      if (!currentPath) return;
       const lastSlashIndex = currentPath.lastIndexOf('\\');
-      if (lastSlashIndex < 3 && currentPath.includes(':\\')) {
+      if (lastSlashIndex === -1) {
         this.getActiveTab()?.loadPath('');
-      } else {
-        const parentPath = currentPath.substring(0, lastSlashIndex);
-        if (parentPath) {
-          this.getActiveTab()?.loadPath(parentPath);
-        } else {
-          this.getActiveTab()?.loadPath('');
-        }
+        return;
       }
+      if (lastSlashIndex === 2 && currentPath.length === 3) {
+        this.getActiveTab()?.loadPath('');
+        return;
+      }
+      let parentPath = currentPath.substring(0, lastSlashIndex);
+      if (parentPath.length === 2 && parentPath.endsWith(':')) {
+        parentPath += '\\';
+      }
+      this.getActiveTab()?.loadPath(parentPath);
     });
     this.historyBackButton.addEventListener('click', () => this.getActiveTab()?.goBack());
     this.historyForwardButton.addEventListener('click', () => this.getActiveTab()?.goForward());
@@ -61,6 +65,26 @@ class TabManager {
       const activeTab = this.getActiveTab();
       if (activeTab) {
         activeTab.filterFiles(e.target.value);
+      }
+    });
+    document.addEventListener('keydown', (event) => {
+      const activeTab = this.getActiveTab();
+      if (!activeTab) return;
+      if (event.key === 'F5') {
+        event.preventDefault();
+        activeTab.refresh();
+        return;
+      }
+      if (event.key === 'Backspace') {
+        if (document.activeElement.tagName.toLowerCase() === 'input' || document.activeElement.isContentEditable) {
+          return;
+        }
+        event.preventDefault();
+        const backButton = document.getElementById('back-button');
+        if (backButton) {
+          backButton.click();
+        }
+        return;
       }
     });
   }
