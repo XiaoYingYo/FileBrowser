@@ -35,17 +35,16 @@ class NotificationCenter {
     this.panel.classList.remove('active');
     this.mask.classList.remove('active');
   }
-  addNotification({ icon, iconClass, source, time, message, actions }) {
+  addNotification(notification) {
+    if (typeof notification === 'string') {
+      notification = { message: notification, source: '系统', time: '刚才', icon: 'info' };
+    }
+
+    const { icon = 'info', iconClass = '', source = '系统', time = '刚才', message, actions } = notification;
+
     const notificationEl = document.createElement('div');
     notificationEl.className = 'bg-[#2d2d2d] p-3 rounded-lg';
-    let actionsHtml = '';
-    if (actions && actions.length > 0) {
-      actionsHtml = '<div class="flex justify-end mt-3 space-x-2">';
-      actions.forEach(action => {
-        actionsHtml += `<button class="text-sm px-3 py-1 ${action.primary ? 'bg-gray-600 hover:bg-gray-500' : 'hover:bg-gray-700'} rounded">${action.label}</button>`;
-      });
-      actionsHtml += '</div>';
-    }
+
     notificationEl.innerHTML = `
       <div class="flex justify-between items-start">
         <div class="flex items-center space-x-2">
@@ -57,13 +56,34 @@ class NotificationCenter {
             <button class="close-notification">&times;</button>
         </div>
       </div>
-      <p class="text-sm mt-2">${message}</p>
-      ${actionsHtml}
+      <p class="text-sm mt-2 break-all">${message}</p>
     `;
+
+    if (actions && actions.length > 0) {
+      const actionsContainer = document.createElement('div');
+      actionsContainer.className = 'flex justify-end mt-3 space-x-2';
+      actions.forEach((action) => {
+        const button = document.createElement('button');
+        button.className = `text-sm px-3 py-1 ${action.primary ? 'bg-gray-600 hover:bg-gray-500' : 'hover:bg-gray-700'} rounded`;
+        button.textContent = action.label;
+        button.addEventListener('click', () => {
+          if (action.onClick) {
+            action.onClick();
+          }
+          if (action.removeOnClick !== false) {
+            notificationEl.remove();
+            this.updateCount();
+          }
+        });
+        actionsContainer.appendChild(button);
+      });
+      notificationEl.appendChild(actionsContainer);
+    }
+
     this.notificationContainer.prepend(notificationEl);
     notificationEl.querySelector('.close-notification').addEventListener('click', () => {
-        notificationEl.remove();
-        this.updateCount();
+      notificationEl.remove();
+      this.updateCount();
     });
     this.updateCount();
   }

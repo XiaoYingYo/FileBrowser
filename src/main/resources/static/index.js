@@ -383,7 +383,26 @@ class TabManager {
       const result = await callApi('/api/fs-operation', 'POST', payload);
       if (result && result.undoId) {
         activeTab.refresh();
-        window.notificationCenter.addNotification(`${paths.length} 个项目已移至回收站`, 'info');
+        window.notificationCenter.addNotification({
+          message: `${paths.length} 个项目已移至回收站`,
+          icon: 'info',
+          actions: [
+            {
+              label: '撤销',
+              primary: true,
+              onClick: async () => {
+                const undoResult = await callApi('/api/fs-operation', 'POST', {
+                  action: 'undo',
+                  undoId: result.undoId,
+                });
+                if (undoResult) {
+                  activeTab.refresh();
+                  window.notificationCenter.addNotification('操作已撤销', 'success');
+                }
+              },
+            },
+          ],
+        });
       }
     }
   }
@@ -526,36 +545,8 @@ class TabManager {
 document.addEventListener('DOMContentLoaded', () => {
   const tabManager = new TabManager();
   window.tabManager = tabManager;
-  // 初始化通知中心
   const notificationCenter = new NotificationCenter('#notification-center', '#notification-center-button', '#notification-center-mask');
   window.notificationCenter = notificationCenter;
-
-  // 清除HTML中的静态示例，并通过JS动态添加，以作演示
-  if (window.notificationCenter) {
-    window.notificationCenter.clearAll();
-
-    window.notificationCenter.addNotification({
-      icon: 'settings',
-      iconClass: 'text-blue-400',
-      source: '系统',
-      time: '刚才',
-      message: 'Windows 更新已可用。请重启以安装。',
-      actions: [
-        { label: '立即重启', primary: true },
-        { label: '稍后提醒我', primary: false },
-      ],
-    });
-
-    window.notificationCenter.addNotification({
-      icon: 'security',
-      iconClass: 'text-green-400',
-      source: '安全中心',
-      time: '1 小时前',
-      message: '已完成扫描。未发现威胁。',
-      actions: [],
-    });
-  }
-
   if (!tabManager.loadState()) {
     tabManager.addTab();
   }
