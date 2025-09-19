@@ -391,7 +391,7 @@ class TabManager {
               label: '撤销',
               primary: true,
               onClick: async () => {
-                const undoResult = await callApi('/api/fs-operation', 'POST', {
+                const undoResult = await callApi('/api/undo-delete', 'POST', {
                   action: 'undo',
                   undoId: result.undoId,
                 });

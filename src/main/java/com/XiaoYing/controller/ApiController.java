@@ -90,7 +90,6 @@ public class ApiController {
         return disks;
     }
 
-    // 为标签页打开cmd或powershell 返回唯一命令提示符标识 接受JSON BODY
     @RequestMapping(value = "/openTerminal", method = {RequestMethod.POST})
     public String openTerminal(@RequestBody Map<String, String> requestBody) {
         String path = requestBody.get("path");
@@ -107,7 +106,6 @@ public class ApiController {
                 case "delete":
                     List<String> pathsToDelete = (List<String>) payload.get("paths");
                     String undoId = UUID.randomUUID().toString();
-
                     Runnable deleteAction = () -> {
                         try {
                             for (String pathStr : pathsToDelete) {
@@ -121,13 +119,12 @@ public class ApiController {
                                     Files.delete(path);
                                 }
                             }
-                        } catch (IOException e) {
+                        } catch (Throwable e) {
                             e.printStackTrace();
                         } finally {
                             scheduledDeletions.remove(undoId);
                         }
                     };
-
                     ScheduledFuture<?> scheduledFuture = scheduler.schedule(deleteAction, 1, TimeUnit.MINUTES);
                     scheduledDeletions.put(undoId, scheduledFuture);
                     response.put("undoId", undoId);
@@ -169,7 +166,6 @@ public class ApiController {
         String undoId = payload.get("undoId");
         Map<String, Object> response = new HashMap<>();
         ScheduledFuture<?> scheduledFuture = scheduledDeletions.get(undoId);
-
         if (scheduledFuture != null) {
             boolean cancelled = scheduledFuture.cancel(false);
             if (cancelled) {
