@@ -81,21 +81,16 @@ document.addEventListener('DOMContentLoaded', async function () {
 async function loadFiles(path) {
   try {
     document.getElementById('path-input').value = path;
-    const [filesResponse, listCssResponse, listTemplateResponse] = await Promise.all([fetch(`/api/files?path=${encodeURIComponent(path)}`), fetch('./tpl/viewMode/css/list.css'), fetch('./tpl/viewMode/list.html')]);
+    const [filesResponse, listTemplateResponse] = await Promise.all([fetch(`/api/files?path=${encodeURIComponent(path)}`), fetch('./tpl/viewMode/list.html')]);
     if (!filesResponse.ok) {
       throw new Error(`HTTP error! status: ${filesResponse.status}`);
-    }
-    if (!listCssResponse.ok) {
-      throw new Error(`HTTP error! status: ${listCssResponse.status}`);
     }
     if (!listTemplateResponse.ok) {
       throw new Error(`HTTP error! status: ${listTemplateResponse.status}`);
     }
     const files = await filesResponse.json();
-    const listCss = await listCssResponse.text();
     let listTemplate = await listTemplateResponse.text();
 
-    document.getElementById('view-mode-style').innerHTML = listCss;
     const parser = new DOMParser();
     const doc = parser.parseFromString(listTemplate, 'text/html');
     const newListContent = doc.querySelector('.w-full');
