@@ -55,6 +55,11 @@ class Tab {
     this.fileContentElement.id = 'fileContent';
     this.fileContentElement.className = 'p-4 h-full';
     this.contentElement.appendChild(this.fileContentElement);
+    this.terminalContentElement = document.createElement('div');
+    this.terminalContentElement.id = 'terminalContent';
+    this.terminalContentElement.className = 'h-full';
+    this.terminalContentElement.style.display = 'none';
+    this.contentElement.appendChild(this.terminalContentElement);
     this.fileContentElement.addEventListener('click', (e) => {
       if (e.target === this.fileContentElement) {
         this.clearSelection();
