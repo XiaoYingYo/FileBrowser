@@ -21,7 +21,7 @@ class Tab {
   }
   createElement() {
     this.element = document.createElement('div');
-    this.element.className = 'flex items-center bg-[#2d2d2d] px-3 py-2 border-r border-gray-700';
+    this.element.className = 'flex items-center px-3 py-2 border-r border-gray-700';
     this.element.dataset.tabId = this.id;
     this.element.innerHTML = `<span class="material-icons text-yellow-500 text-base mr-2" style="cursor: default; user-select: none;">folder</span>
       <span class="text-sm" style="cursor: default; user-select: none;">新标签页</span>
@@ -524,27 +524,8 @@ class TabManager {
           const lastActiveTabId = state.activeTabId || this.visitHistory[this.visitHistory.length - 1] || state.tabs[0].id;
           if (this.tabs[lastActiveTabId]) {
             this.switchTab(lastActiveTabId);
-            const activeTab = this.getActiveTab();
-            if (activeTab && activeTab.history.length > 0) {
-              const currentPath = activeTab.history[activeTab.historyIndex];
-              // Do not add to history again on initial load
-              if (currentPath === '此电脑') {
-                activeTab.loadDisks(false);
-              } else {
-                activeTab.loadFiles(currentPath, false);
-              }
-            }
           } else if (state.tabs.length > 0) {
             this.switchTab(state.tabs[0].id);
-            const fallbackTab = this.getActiveTab();
-            if (fallbackTab && fallbackTab.history.length > 0) {
-                const currentPath = fallbackTab.history[fallbackTab.historyIndex];
-                if (currentPath === '此电脑') {
-                    fallbackTab.loadDisks(false);
-                } else {
-                    fallbackTab.loadFiles(currentPath, false);
-                }
-            }
           }
           return true;
         }
