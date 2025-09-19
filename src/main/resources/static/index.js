@@ -152,36 +152,12 @@ class Tab {
         throw new Error('Failed to load file data');
       }
       const data = await filesResponse.json();
-      this.allItems = [];
+      this.allItems = [...data.directories, ...data.files];
       const parser = new DOMParser();
       const doc = parser.parseFromString(listTemplate, 'text/html');
       this.contentElement.innerHTML = '';
       this.contentElement.appendChild(doc.querySelector('.w-full'));
-      const fileListContainer = this.contentElement.querySelector('.divide-y');
-      const fileTemplate = fileListContainer.querySelector('for').innerHTML.trim();
-      fileListContainer.innerHTML = '';
-      [data.directories, data.files].forEach((arr) => {
-        arr.forEach((file) => {
-          this.allItems.push(file);
-          let fileElementHtml = fileTemplate
-            .replace('{{icon}}', file.isSymbolicLink ? 'link' : file.isDirectory ? 'folder' : 'description')
-            .replace('{{iconColor}}', file.isSymbolicLink ? 'text-cyan-400' : file.isDirectory ? 'text-yellow-500' : 'text-gray-400')
-            .replace('{{extraClasses}}', file.isHidden ? 'opacity-50' : '')
-            .replace('{{fileName}}', file.name)
-            .replace('{{lastModified}}', new Date(file.lastModified).toLocaleString())
-            .replace('{{fileSize}}', file.isDirectory ? '' : formatBytes(file.size));
-          const tempDiv = document.createElement('div');
-          tempDiv.innerHTML = fileElementHtml;
-          const fileElement = tempDiv.firstElementChild;
-          fileElement.dataset.itemId = file.path;
-          fileElement.addEventListener('click', (e) => this.handleItemClick(e, file, fileElement));
-          if (file.isDirectory) {
-            fileElement.addEventListener('dblclick', async () => await this.loadPath(file.path));
-          }
-          fileListContainer.appendChild(fileElement);
-        });
-      });
-      this.updateItemCount();
+      this.renderFiles(this.allItems);
       if (addToHistory) {
         if (this.historyIndex < this.history.length - 1) {
           this.history.splice(this.historyIndex + 1);
@@ -193,6 +169,39 @@ class Tab {
     } catch (error) {
       console.error('Error fetching files:', error);
     }
+  }
+  filterFiles(searchTerm) {
+    if (!searchTerm) {
+      this.renderFiles(this.allItems);
+      return;
+    }
+    const filteredItems = this.allItems.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    this.renderFiles(filteredItems);
+  }
+  renderFiles(items) {
+    const fileListContainer = this.contentElement.querySelector('.divide-y');
+    if (!fileListContainer) return;
+    const fileTemplate = this.tabManager.templateCache['./tpl/viewMode/list.html'].match(/<for>([\s\S]*?)<\/for>/)[1].trim();
+    fileListContainer.innerHTML = '';
+    items.forEach((file) => {
+      let fileElementHtml = fileTemplate
+        .replace('{{icon}}', file.isSymbolicLink ? 'link' : file.isDirectory ? 'folder' : 'description')
+        .replace('{{iconColor}}', file.isSymbolicLink ? 'text-cyan-400' : file.isDirectory ? 'text-yellow-500' : 'text-gray-400')
+        .replace('{{extraClasses}}', file.isHidden ? 'opacity-50' : '')
+        .replace('{{fileName}}', file.name)
+        .replace('{{lastModified}}', new Date(file.lastModified).toLocaleString())
+        .replace('{{fileSize}}', file.isDirectory ? '' : formatBytes(file.size));
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = fileElementHtml;
+      const fileElement = tempDiv.firstElementChild;
+      fileElement.dataset.itemId = file.path;
+      fileElement.addEventListener('click', (e) => this.handleItemClick(e, file, fileElement));
+      if (file.isDirectory) {
+        fileElement.addEventListener('dblclick', async () => await this.loadPath(file.path));
+      }
+      fileListContainer.appendChild(fileElement);
+    });
+    this.updateItemCount();
   }
   handleItemClick(event, item, element) {
     event.stopPropagation();
@@ -271,6 +280,7 @@ class TabManager {
     this.contentContainer = document.getElementById('content-container');
     this.addTabButton = document.getElementById('add-tab-button');
     this.pathInput = document.getElementById('path-input');
+    this.filterInput = document.getElementById('filter-input');
     this.historyBackButton = document.getElementById('history-back-button');
     this.historyForwardButton = document.getElementById('history-forward-button');
     this.clipboard = null;
@@ -319,6 +329,12 @@ class TabManager {
     document.getElementById('paste-button').addEventListener('click', () => this.handlePaste());
     document.getElementById('rename-button').addEventListener('click', () => this.handleRename());
     document.getElementById('delete-button').addEventListener('click', () => this.handleDelete());
+    this.filterInput.addEventListener('input', (e) => {
+      const activeTab = this.getActiveTab();
+      if (activeTab) {
+        activeTab.filterFiles(e.target.value);
+      }
+    });
   }
   handleCut() {
     const activeTab = this.getActiveTab();
