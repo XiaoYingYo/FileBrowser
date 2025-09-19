@@ -375,18 +375,16 @@ class TabManager {
   async handleDelete() {
     const activeTab = this.getActiveTab();
     if (activeTab && activeTab.selectedItems.size > 0) {
-      if (confirm(`确定要删除选中的 ${activeTab.selectedItems.size} 个项目吗？`)) {
-        const paths = [...activeTab.selectedItems].map((item) => item.path);
-        const payload = {
-          action: 'delete',
-          paths: paths,
-        };
-        const result = await callApi('/api/fs-operation', 'POST', payload);
-        if (result && result.undoId) {
-          activeTab.refresh();
-          window.showUndoToast(result.undoId);
-          window.notificationCenter.addNotification(`${paths.length} 个项目已移至回收站`, 'info');
-        }
+      const paths = [...activeTab.selectedItems].map((item) => item.path);
+      const payload = {
+        action: 'delete',
+        paths: paths,
+      };
+      const result = await callApi('/api/fs-operation', 'POST', payload);
+      if (result && result.undoId) {
+        activeTab.refresh();
+        window.showUndoToast(result.undoId);
+        window.notificationCenter.addNotification(`${paths.length} 个项目已移至回收站`, 'info');
       }
     }
   }
@@ -545,8 +543,8 @@ document.addEventListener('DOMContentLoaded', () => {
       message: 'Windows 更新已可用。请重启以安装。',
       actions: [
         { label: '立即重启', primary: true },
-        { label: '稍后提醒我', primary: false }
-      ]
+        { label: '稍后提醒我', primary: false },
+      ],
     });
 
     window.notificationCenter.addNotification({
@@ -555,7 +553,7 @@ document.addEventListener('DOMContentLoaded', () => {
       source: '安全中心',
       time: '1 小时前',
       message: '已完成扫描。未发现威胁。',
-      actions: []
+      actions: [],
     });
   }
 
