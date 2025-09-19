@@ -1,12 +1,15 @@
-async function callFsApi(payload) {
+async function callApi(url, method = 'POST', payload = null) {
   try {
-    const response = await fetch('/api/fs-operation', {
-      method: 'POST',
+    const options = {
+      method: method,
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payload),
-    });
+    };
+    if (payload) {
+      options.body = JSON.stringify(payload);
+    }
+    const response = await fetch(url, options);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -369,7 +372,7 @@ class TabManager {
         ...this.clipboard,
         destinationPath,
       };
-      const result = await this.callFsApi(payload);
+      const result = await callApi('/api/fs-operation', 'POST', payload);
       if (result) {
         this.clipboard = null;
         activeTab.refresh();
@@ -388,7 +391,7 @@ class TabManager {
           oldPath: itemToRename.path,
           newName: newName,
         };
-        const result = await this.callFsApi(payload);
+        const result = await callApi('/api/fs-operation', 'POST', payload);
         if (result) {
           activeTab.refresh();
         }
@@ -404,7 +407,7 @@ class TabManager {
           action: 'delete',
           paths: paths,
         };
-        const result = await this.callFsApi(payload);
+        const result = await callApi('/api/fs-operation', 'POST', payload);
         if (result) {
           activeTab.refresh();
         }
