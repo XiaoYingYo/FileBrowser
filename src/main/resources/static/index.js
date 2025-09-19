@@ -1,19 +1,16 @@
 document.addEventListener('DOMContentLoaded', async function () {
   try {
     const [disksResponse, templateResponse] = await Promise.all([fetch('/api/disks'), fetch('./tpl/viewMode/disk.html')]);
-
     if (!disksResponse.ok) {
       throw new Error(`HTTP error! status: ${disksResponse.status}`);
     }
     if (!templateResponse.ok) {
       throw new Error(`HTTP error! status: ${templateResponse.status}`);
     }
-
     const disks = await disksResponse.json();
     const template = await templateResponse.text();
     const diskList = document.getElementById('disk-list');
-    diskList.innerHTML = ''; // Clear existing content
-
+    diskList.innerHTML = '';
     disks.forEach((disk) => {
       const usedSpace = disk.totalSpace - disk.freeSpace;
       const usedPercentage = (usedSpace / disk.totalSpace) * 100;
