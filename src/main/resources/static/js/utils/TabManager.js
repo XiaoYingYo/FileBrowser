@@ -99,7 +99,7 @@ class TabManager {
      if (event.key === 'Shift') {
        const activeTab = this.getActiveTab();
        if (activeTab) {
-         activeTab.contentElement.classList.add('no-select');
+         activeTab.fileContentElement.classList.add('no-select');
        }
      }
    });
@@ -107,7 +107,7 @@ class TabManager {
      if (event.key === 'Shift') {
        const activeTab = this.getActiveTab();
        if (activeTab) {
-         activeTab.contentElement.classList.remove('no-select');
+         activeTab.fileContentElement.classList.remove('no-select');
        }
      }
    });
@@ -274,7 +274,7 @@ class TabManager {
     }
     this.visitHistory.push(tabId);
     const tabToShow = this.tabs[tabId];
-    if (tabToShow.contentElement.childElementCount === 0 && tabToShow.history.length > 0) {
+    if (tabToShow.fileContentElement.childElementCount === 0 && tabToShow.history.length > 0) {
       const currentPath = tabToShow.history[tabToShow.historyIndex];
       if (currentPath === '') {
         tabToShow.loadDisks(false);

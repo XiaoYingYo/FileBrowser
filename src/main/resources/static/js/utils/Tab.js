@@ -49,10 +49,14 @@ class Tab {
   createContentElement() {
     this.contentElement = document.createElement('div');
     this.contentElement.id = this.id;
-    this.contentElement.className = 'p-4 h-full';
+    this.contentElement.className = 'h-full';
     this.contentElement.style.display = 'none';
-    this.contentElement.addEventListener('click', (e) => {
-      if (e.target === this.contentElement) {
+    this.fileContentElement = document.createElement('div');
+    this.fileContentElement.id = 'fileContent';
+    this.fileContentElement.className = 'p-4 h-full';
+    this.contentElement.appendChild(this.fileContentElement);
+    this.fileContentElement.addEventListener('click', (e) => {
+      if (e.target === this.fileContentElement) {
         this.clearSelection();
       }
     });
@@ -137,8 +141,8 @@ class Tab {
           return diskItemTemplate.replace('{{diskType}}', disk.type).replace('{{diskPath}}', disk.path.slice(0, 2)).replace('{{usedPercentage}}', usedPercentage.toFixed(2)).replace('{{freeSpace}}', formatBytes(disk.freeSpace)).replace('{{totalSpace}}', formatBytes(disk.totalSpace));
         })
         .join('');
-      this.contentElement.innerHTML = diskViewTemplate.replace(/<for>[\s\S]*?<\/for>/, allDisksHtml);
-      this.contentElement.querySelectorAll('.cursor-pointer').forEach((element, index) => {
+      this.fileContentElement.innerHTML = diskViewTemplate.replace(/<for>[\s\S]*?<\/for>/, allDisksHtml);
+      this.fileContentElement.querySelectorAll('.cursor-pointer').forEach((element, index) => {
         const disk = disks[index];
         element.dataset.itemId = disk.path;
         element.addEventListener('click', (e) => this.handleItemClick(e, disk, element));
@@ -173,8 +177,8 @@ class Tab {
       this.allItems = [...data.directories, ...data.files];
       const parser = new DOMParser();
       const doc = parser.parseFromString(listTemplate, 'text/html');
-      this.contentElement.innerHTML = '';
-      this.contentElement.appendChild(doc.querySelector('.w-full'));
+      this.fileContentElement.innerHTML = '';
+      this.fileContentElement.appendChild(doc.querySelector('.w-full'));
       this.renderFiles(this.allItems);
       if (this.filterTerm) {
         this.filterFiles(this.filterTerm);
@@ -203,7 +207,7 @@ class Tab {
     this.renderFiles(filteredItems);
   }
   renderFiles(items) {
-    const fileListContainer = this.contentElement.querySelector('.divide-y');
+    const fileListContainer = this.fileContentElement.querySelector('.divide-y');
     if (!fileListContainer) return;
     const fileTemplate = this.tabManager.templateCache['./tpl/viewMode/list.html'].match(/<for>([\s\S]*?)<\/for>/)[1].trim();
     fileListContainer.innerHTML = '';
@@ -268,7 +272,7 @@ class Tab {
     this.tabManager.updateActionButtons();
   }
   updateSelectionUI() {
-    this.contentElement.querySelectorAll('[data-item-id]').forEach((el) => {
+    this.fileContentElement.querySelectorAll('[data-item-id]').forEach((el) => {
       const itemId = el.dataset.itemId;
       const item = this.allItems.find((i) => i.path === itemId);
       if (item && this.selectedItems.has(item)) {
@@ -279,7 +283,7 @@ class Tab {
     });
   }
   updateItemMarks() {
-    this.contentElement.querySelectorAll('[data-item-id]').forEach((el) => {
+    this.fileContentElement.querySelectorAll('[data-item-id]').forEach((el) => {
       const itemId = el.dataset.itemId;
       const mark = localStorage.getItem(`${itemId}_mark_temp`);
       el.classList.remove('marked-cut', 'marked-copy');
