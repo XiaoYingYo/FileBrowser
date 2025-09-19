@@ -383,7 +383,6 @@ class TabManager {
       const result = await callApi('/api/fs-operation', 'POST', payload);
       if (result && result.undoId) {
         activeTab.refresh();
-        window.showUndoToast(result.undoId);
         window.notificationCenter.addNotification(`${paths.length} 个项目已移至回收站`, 'info');
       }
     }
