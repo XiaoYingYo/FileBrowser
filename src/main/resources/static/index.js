@@ -319,7 +319,6 @@ class TabManager {
         operation: 'cut',
       };
       this.updateActionButtons();
-      // Optional: Add visual feedback for cut items
     }
   }
   handleCopy() {
@@ -385,13 +384,13 @@ class TabManager {
         window.notificationCenter.addNotification({
           message: paths.join('\n') + '\n1分钟后彻底删除!',
           icon: 'info',
-          ttl: 60000, // 1分钟后自动过期
+          ttl: 60000,
           actions: [
             {
               label: '撤销',
               primary: true,
-              actionType: 'undoDelete', // 使用 actionType 标识行为
-              payload: { undoId: result.undoId } // 传递可序列化的数据
+              actionType: 'undoDelete',
+              payload: { undoId: result.undoId },
             },
           ],
         });
@@ -533,32 +532,27 @@ class TabManager {
     return false;
   }
 }
-
 document.addEventListener('DOMContentLoaded', () => {
   const tabManager = new TabManager();
   window.tabManager = tabManager;
-  
-  // 定义全局通知Action处理器
   window.notificationActionHandlers = {
-    'undoDelete': async (payload) => {
+    'undoDelete': async (payload, notificationId) => {
       const activeTab = window.tabManager.getActiveTab();
       if (!activeTab || !payload || !payload.undoId) return;
-      
       const undoResult = await callApi('/api/undo-delete', 'POST', {
         action: 'undo',
         undoId: payload.undoId,
       });
-
       if (undoResult) {
         activeTab.refresh();
-        window.notificationCenter.addNotification('操作已撤销', 'success');
+        if (notificationId) {
+          window.notificationCenter.removeNotification(notificationId);
+        }
       }
     }
   };
-
   const notificationCenter = new NotificationCenter('#notification-center', '#notification-center-button', '#notification-center-mask');
   window.notificationCenter = notificationCenter;
-  
   if (!tabManager.loadState()) {
     tabManager.addTab();
   }

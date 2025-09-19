@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -29,7 +30,8 @@ import java.util.Map;
 @RequestMapping("/api")
 public class ApiController {
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    private final Map<String, ScheduledFuture<?>> scheduledDeletions = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, Object>> scheduledDeletions = new ConcurrentHashMap<>();
+    private final Set<String> pendingDeletions = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     @GetMapping("/files")
     public Map<String, List<Map<String, Object>>> getFiles(@RequestParam("path") String pathStr) {
@@ -38,6 +40,9 @@ public class ApiController {
         Path directory = Paths.get(pathStr);
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
             for (Path file : stream) {
+                if (pendingDeletions.contains(file.toAbsolutePath().toString())) {
+                    continue;
+                }
                 Map<String, Object> fileInfo = new HashMap<>();
                 fileInfo.put("name", file.getFileName().toString());
                 fileInfo.put("path", file.toAbsolutePath().toString());
@@ -106,6 +111,7 @@ public class ApiController {
                 case "delete":
                     List<String> pathsToDelete = (List<String>) payload.get("paths");
                     String undoId = UUID.randomUUID().toString();
+                    pendingDeletions.addAll(pathsToDelete); // Add paths to pending set
                     Runnable deleteAction = () -> {
                         try {
                             for (String pathStr : pathsToDelete) {
@@ -123,10 +129,16 @@ public class ApiController {
                             e.printStackTrace();
                         } finally {
                             scheduledDeletions.remove(undoId);
+                            pendingDeletions.removeAll(pathsToDelete); // Clean up paths
                         }
                     };
                     ScheduledFuture<?> scheduledFuture = scheduler.schedule(deleteAction, 1, TimeUnit.MINUTES);
-                    scheduledDeletions.put(undoId, scheduledFuture);
+                    
+                    Map<String, Object> deletionInfo = new HashMap<>();
+                    deletionInfo.put("future", scheduledFuture);
+                    deletionInfo.put("paths", pathsToDelete);
+                    scheduledDeletions.put(undoId, deletionInfo);
+
                     response.put("undoId", undoId);
                     break;
                 case "rename":
@@ -162,14 +174,19 @@ public class ApiController {
     }
 
     @PostMapping("/undo-delete")
-    public Map<String, Object> undoDelete(@RequestBody Map<String, String> payload) {
-        String undoId = payload.get("undoId");
+    public Map<String, Object> undoDelete(@RequestBody Map<String, Object> payload) {
+        String undoId = (String) payload.get("undoId");
         Map<String, Object> response = new HashMap<>();
-        ScheduledFuture<?> scheduledFuture = scheduledDeletions.get(undoId);
-        if (scheduledFuture != null) {
+        Map<String, Object> deletionInfo = scheduledDeletions.get(undoId);
+        if (deletionInfo != null) {
+            ScheduledFuture<?> scheduledFuture = (ScheduledFuture<?>) deletionInfo.get("future");
             boolean cancelled = scheduledFuture.cancel(false);
             if (cancelled) {
                 scheduledDeletions.remove(undoId);
+                List<String> pathsToRestore = (List<String>) deletionInfo.get("paths");
+                if (pathsToRestore != null) {
+                    pendingDeletions.removeAll(pathsToRestore);
+                }
                 response.put("success", true);
                 response.put("message", "Deletion has been cancelled.");
             } else {
@@ -178,6 +195,7 @@ public class ApiController {
             }
         } else {
             response.put("success", true);
+            response.put("message", "Deletion task not found, it might have been already executed or cancelled.");
         }
         return response;
     }
