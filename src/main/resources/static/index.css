@@ -871,3 +871,6 @@ select {
 .disabled\:opacity-50:disabled {
   opacity: 0.5;
 }
+.selected {
+  background-color: rgba(59, 130, 246, 0.3);
+}

@@ -4,6 +4,9 @@ class Tab {
     this.id = `tab-${Date.now()}`;
     this.history = [];
     this.historyIndex = -1;
+    this.selectedItems = new Set();
+    this.lastSelectedItem = null;
+    this.allItems = [];
     this.createElement();
     this.createContentElement();
   }
@@ -29,6 +32,11 @@ class Tab {
     this.contentElement.id = this.id;
     this.contentElement.className = 'p-4 h-full';
     this.contentElement.style.display = 'none';
+    this.contentElement.addEventListener('click', (e) => {
+      if (e.target === this.contentElement) {
+        this.clearSelection();
+      }
+    });
   }
   setTitle(title) {
     this.element.querySelector('.text-sm').textContent = title;
@@ -45,6 +53,7 @@ class Tab {
     if (this.history[this.historyIndex] === path) {
       return;
     }
+    this.clearSelection();
     if (path === '此电脑') {
       await this.loadDisks();
     } else {
@@ -55,6 +64,7 @@ class Tab {
     if (this.historyIndex > 0) {
       this.historyIndex--;
       const path = this.history[this.historyIndex];
+      this.clearSelection();
       if (path === '此电脑') {
         await this.loadDisks(false);
       } else {
@@ -67,6 +77,7 @@ class Tab {
     if (this.historyIndex < this.history.length - 1) {
       this.historyIndex++;
       const path = this.history[this.historyIndex];
+      this.clearSelection();
       if (path === '此电脑') {
         await this.loadDisks(false);
       } else {
@@ -82,6 +93,7 @@ class Tab {
       const [disksResponse, diskTemplateResponse] = await Promise.all([fetch('/api/disks'), fetch('./tpl/viewMode/disk.html')]);
       if (!disksResponse.ok || !diskTemplateResponse.ok) throw new Error('Failed to load disk data or template');
       const disks = await disksResponse.json();
+      this.allItems = disks;
       const diskViewTemplate = await diskTemplateResponse.text();
       const diskItemTemplateMatch = diskViewTemplate.match(/<for>([\s\S]*?)<\/for>/);
       if (!diskItemTemplateMatch) throw new Error('Disk item template not found');
@@ -95,9 +107,12 @@ class Tab {
         .join('');
       this.contentElement.innerHTML = diskViewTemplate.replace(/<for>[\s\S]*?<\/for>/, allDisksHtml);
       this.contentElement.querySelectorAll('.cursor-pointer').forEach((element, index) => {
-        element.addEventListener('dblclick', async () => await this.loadPath(disks[index].path));
+        const disk = disks[index];
+        element.dataset.itemId = disk.path;
+        element.addEventListener('click', (e) => this.handleItemClick(e, disk, element));
+        element.addEventListener('dblclick', async () => await this.loadPath(disk.path));
       });
-      document.getElementById('item-count').textContent = `${disks.length} 个项目 |`;
+      this.updateItemCount();
       if (addToHistory) {
         if (this.historyIndex < this.history.length - 1) {
           this.history.splice(this.historyIndex + 1);
@@ -119,7 +134,7 @@ class Tab {
         throw new Error('Failed to load file data or template');
       }
       const data = await filesResponse.json();
-      const allItems = [...data.directories, ...data.files];
+      this.allItems = [...data.directories, ...data.files];
       const listTemplate = await listTemplateResponse.text();
       const parser = new DOMParser();
       const doc = parser.parseFromString(listTemplate, 'text/html');
@@ -128,7 +143,7 @@ class Tab {
       const fileListContainer = this.contentElement.querySelector('.divide-y');
       const fileTemplate = fileListContainer.querySelector('for').innerHTML.trim();
       fileListContainer.innerHTML = '';
-      allItems.forEach((file) => {
+      this.allItems.forEach((file) => {
         let fileElementHtml = fileTemplate
           .replace('{{icon}}', file.isSymbolicLink ? 'link' : file.isDirectory ? 'folder' : 'description')
           .replace('{{iconColor}}', file.isSymbolicLink ? 'text-cyan-400' : file.isDirectory ? 'text-yellow-500' : 'text-gray-400')
@@ -139,12 +154,14 @@ class Tab {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = fileElementHtml;
         const fileElement = tempDiv.firstElementChild;
+        fileElement.dataset.itemId = file.path;
+        fileElement.addEventListener('click', (e) => this.handleItemClick(e, file, fileElement));
         if (file.isDirectory) {
           fileElement.addEventListener('dblclick', async () => await this.loadPath(file.path));
         }
         fileListContainer.appendChild(fileElement);
       });
-      document.getElementById('item-count').textContent = `${allItems.length} 个项目 |`;
+      this.updateItemCount();
       if (addToHistory) {
         if (this.historyIndex < this.history.length - 1) {
           this.history.splice(this.historyIndex + 1);
@@ -156,6 +173,62 @@ class Tab {
     } catch (error) {
       console.error('Error fetching files:', error);
     }
+  }
+  handleItemClick(event, item, element) {
+    event.stopPropagation();
+    const isCtrlPressed = event.ctrlKey || event.metaKey;
+    const isShiftPressed = event.shiftKey;
+    if (isShiftPressed && this.lastSelectedItem) {
+      this.clearSelection(false);
+      const lastIndex = this.allItems.findIndex((i) => i.path === this.lastSelectedItem.path);
+      const currentIndex = this.allItems.findIndex((i) => i.path === item.path);
+      const start = Math.min(lastIndex, currentIndex);
+      const end = Math.max(lastIndex, currentIndex);
+      for (let i = start; i <= end; i++) {
+        this.selectedItems.add(this.allItems[i]);
+      }
+    } else if (isCtrlPressed) {
+      if (this.selectedItems.has(item)) {
+        this.selectedItems.delete(item);
+      } else {
+        this.selectedItems.add(item);
+      }
+      this.lastSelectedItem = item;
+    } else {
+      this.clearSelection(false);
+      this.selectedItems.add(item);
+      this.lastSelectedItem = item;
+    }
+    this.updateSelectionUI();
+    this.updateItemCount();
+  }
+  updateSelectionUI() {
+    this.contentElement.querySelectorAll('[data-item-id]').forEach((el) => {
+      const itemId = el.dataset.itemId;
+      const item = this.allItems.find((i) => i.path === itemId);
+      if (item && this.selectedItems.has(item)) {
+        el.classList.add('selected');
+      } else {
+        el.classList.remove('selected');
+      }
+    });
+  }
+  clearSelection(updateUI = true) {
+    this.selectedItems.clear();
+    this.lastSelectedItem = null;
+    if (updateUI) {
+      this.updateSelectionUI();
+      this.updateItemCount();
+    }
+  }
+  updateItemCount() {
+    const totalCount = this.allItems.length;
+    const selectedCount = this.selectedItems.size;
+    let text = `${totalCount} 个项目`;
+    if (selectedCount > 0) {
+      text += ` | ${selectedCount} 个项目已选择`;
+    }
+    document.getElementById('item-count').textContent = text;
   }
 }
 class TabManager {
@@ -192,7 +265,7 @@ class TabManager {
     this.historyForwardButton.addEventListener('click', () => this.getActiveTab()?.goForward());
     document.getElementById('refresh-button').addEventListener('click', () => {
       const currentPath = this.pathInput.value;
-      if (currentPath && currentPath !== '此电脑') {
+      if (currentPath) {
         this.getActiveTab()?.loadPath(currentPath);
       }
     });
@@ -224,8 +297,11 @@ class TabManager {
     this.tabs[tabId].show();
     this.updateNavigationButtons();
     const activeTab = this.getActiveTab();
-    if (activeTab && activeTab.history.length > 0) {
-      this.setPathInputValue(activeTab.history[activeTab.historyIndex]);
+    if (activeTab) {
+      if (activeTab.history.length > 0) {
+        this.setPathInputValue(activeTab.history[activeTab.historyIndex]);
+      }
+      activeTab.updateItemCount();
     }
   }
   closeTab(tabId) {
@@ -284,6 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
 function formatBytes(bytes, decimals = 2) {
   if (bytes === 0) return '0 Bytes';
   const k = 1024;
