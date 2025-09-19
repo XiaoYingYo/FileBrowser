@@ -237,7 +237,7 @@ class TabManager {
   }
 
   switchTab(tabId) {
-    if (this.activeTabId) {
+    if (this.activeTabId && this.tabs[this.activeTabId]) {
       this.tabs[this.activeTabId].hide();
     }
     this.activeTabId = tabId;
