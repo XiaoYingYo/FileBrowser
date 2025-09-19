@@ -1,5 +1,5 @@
-<div class="w-full">
-  <div class="grid grid-cols-[minmax(150px,1fr)_150px_100px] gap-x-4 px-2 pb-2 border-b border-gray-700 text-sm text-gray-400">
+<div class="w-full h-full flex flex-col">
+  <div class="grid grid-cols-[minmax(150px,1fr)_150px_100px] gap-x-4 px-2 pb-2 border-b border-gray-700 text-sm text-gray-400 flex-shrink-0">
     <div class="flex items-center cursor-pointer hover:text-white relative">
       <span>名称</span>
       <div class="resize-handle"></div>
@@ -12,7 +12,7 @@
       <span>大小</span>
     </div>
   </div>
-  <div class="divide-y divide-gray-800">
+  <div class="divide-y divide-gray-800 overflow-y-auto flex-grow">
     <for>
     <div class="grid grid-cols-[minmax(150px,1fr)_150px_100px] gap-x-4 items-center p-2 hover:bg-gray-700 rounded-md cursor-pointer {{extraClasses}}">
       <div class="flex items-center">
