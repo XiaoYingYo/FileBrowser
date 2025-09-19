@@ -59,31 +59,31 @@ class Tab {
     this.historyIndex = this.history.length - 1;
     this.tabManager.updateNavigationButtons();
   }
-  
+
   async goBack() {
-      if (this.historyIndex > 0) {
-          this.historyIndex--;
-          const path = this.history[this.historyIndex];
-          if (path === '此电脑') {
-              await this.loadDisks(false);
-          } else {
-              await this.loadFiles(path, false);
-          }
-          this.tabManager.updateNavigationButtons();
+    if (this.historyIndex > 0) {
+      this.historyIndex--;
+      const path = this.history[this.historyIndex];
+      if (path === '此电脑') {
+        await this.loadDisks(false);
+      } else {
+        await this.loadFiles(path, false);
       }
+      this.tabManager.updateNavigationButtons();
+    }
   }
 
   async goForward() {
-      if (this.historyIndex < this.history.length - 1) {
-          this.historyIndex++;
-          const path = this.history[this.historyIndex];
-          if (path === '此电脑') {
-              await this.loadDisks(false);
-          } else {
-              await this.loadFiles(path, false);
-          }
-          this.tabManager.updateNavigationButtons();
+    if (this.historyIndex < this.history.length - 1) {
+      this.historyIndex++;
+      const path = this.history[this.historyIndex];
+      if (path === '此电脑') {
+        await this.loadDisks(false);
+      } else {
+        await this.loadFiles(path, false);
       }
+      this.tabManager.updateNavigationButtons();
+    }
   }
 
   async loadDisks(addToHistory = true) {
@@ -92,23 +92,20 @@ class Tab {
       this.tabManager.setPathInputValue('此电脑');
       const [disksResponse, diskTemplateResponse] = await Promise.all([fetch('/api/disks'), fetch('./tpl/viewMode/disk.html')]);
       if (!disksResponse.ok || !diskTemplateResponse.ok) throw new Error('Failed to load disk data or template');
-      
+
       const disks = await disksResponse.json();
       const diskViewTemplate = await diskTemplateResponse.text();
       const diskItemTemplateMatch = diskViewTemplate.match(/<for>([\s\S]*?)<\/for>/);
       if (!diskItemTemplateMatch) throw new Error('Disk item template not found');
-      
+
       const diskItemTemplate = diskItemTemplateMatch[1].trim();
-      let allDisksHtml = disks.map(disk => {
-        const usedSpace = disk.totalSpace - disk.freeSpace;
-        const usedPercentage = (usedSpace / disk.totalSpace) * 100;
-        return diskItemTemplate
-          .replace('{{diskType}}', disk.type)
-          .replace('{{diskPath}}', disk.path.slice(0, 2))
-          .replace('{{usedPercentage}}', usedPercentage.toFixed(2))
-          .replace('{{freeSpace}}', formatBytes(disk.freeSpace))
-          .replace('{{totalSpace}}', formatBytes(disk.totalSpace));
-      }).join('');
+      let allDisksHtml = disks
+        .map((disk) => {
+          const usedSpace = disk.totalSpace - disk.freeSpace;
+          const usedPercentage = (usedSpace / disk.totalSpace) * 100;
+          return diskItemTemplate.replace('{{diskType}}', disk.type).replace('{{diskPath}}', disk.path.slice(0, 2)).replace('{{usedPercentage}}', usedPercentage.toFixed(2)).replace('{{freeSpace}}', formatBytes(disk.freeSpace)).replace('{{totalSpace}}', formatBytes(disk.totalSpace));
+        })
+        .join('');
 
       this.contentElement.innerHTML = diskViewTemplate.replace(/<for>[\s\S]*?<\/for>/, allDisksHtml);
       this.contentElement.querySelectorAll('.cursor-pointer').forEach((element, index) => {
@@ -130,12 +127,14 @@ class Tab {
       this.setTitle(path.split('\\').pop() || path);
       this.tabManager.setPathInputValue(path);
       const [filesResponse, listTemplateResponse] = await Promise.all([fetch(`/api/files?path=${encodeURIComponent(path)}`), fetch('./tpl/viewMode/list.html')]);
-      if (!filesResponse.ok || !listTemplateResponse.ok) throw new Error('Failed to load file data or template');
+      if (!filesResponse.ok || !listTemplateResponse.ok) {
+        throw new Error('Failed to load file data or template');
+      }
 
       const data = await filesResponse.json();
       const allItems = [...data.directories, ...data.files];
       const listTemplate = await listTemplateResponse.text();
-      
+
       const parser = new DOMParser();
       const doc = parser.parseFromString(listTemplate, 'text/html');
       this.contentElement.innerHTML = '';
@@ -145,14 +144,14 @@ class Tab {
       const fileTemplate = fileListContainer.querySelector('for').innerHTML.trim();
       fileListContainer.innerHTML = '';
 
-      allItems.forEach(file => {
+      allItems.forEach((file) => {
         let fileElementHtml = fileTemplate
-            .replace('{{icon}}', file.isSymbolicLink ? 'link' : (file.isDirectory ? 'folder' : 'description'))
-            .replace('{{iconColor}}', file.isSymbolicLink ? 'text-cyan-400' : (file.isDirectory ? 'text-yellow-500' : 'text-gray-400'))
-            .replace('{{extraClasses}}', file.isHidden ? 'opacity-50' : '')
-            .replace('{{fileName}}', file.name)
-            .replace('{{lastModified}}', new Date(file.lastModified).toLocaleString())
-            .replace('{{fileSize}}', file.isDirectory ? '' : formatBytes(file.size));
+          .replace('{{icon}}', file.isSymbolicLink ? 'link' : file.isDirectory ? 'folder' : 'description')
+          .replace('{{iconColor}}', file.isSymbolicLink ? 'text-cyan-400' : file.isDirectory ? 'text-yellow-500' : 'text-gray-400')
+          .replace('{{extraClasses}}', file.isHidden ? 'opacity-50' : '')
+          .replace('{{fileName}}', file.name)
+          .replace('{{lastModified}}', new Date(file.lastModified).toLocaleString())
+          .replace('{{fileSize}}', file.isDirectory ? '' : formatBytes(file.size));
 
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = fileElementHtml;
@@ -179,14 +178,15 @@ class TabManager {
   constructor() {
     this.tabs = {};
     this.activeTabId = null;
+    this.visitHistory = [];
     this.tabContainer = document.getElementById('tab-bar');
     this.contentContainer = document.getElementById('content-container');
     this.addTabButton = document.getElementById('add-tab-button');
     this.pathInput = document.getElementById('path-input');
-    
+
     this.backButton = document.getElementById('history-back-button');
     this.forwardButton = document.getElementById('history-forward-button');
-    
+
     this.initEventListeners();
   }
 
@@ -194,36 +194,36 @@ class TabManager {
     this.addTabButton.addEventListener('click', () => this.addTab());
     document.getElementById('home-button').addEventListener('click', () => this.getActiveTab()?.loadPath('此电脑'));
     document.getElementById('back-button').addEventListener('click', () => {
-        const currentPath = this.pathInput.value;
-        const lastSlashIndex = currentPath.lastIndexOf('\\');
+      const currentPath = this.pathInput.value;
+      const lastSlashIndex = currentPath.lastIndexOf('\\');
 
-        if (lastSlashIndex < 3 && currentPath.includes(':\\')) {
-            this.getActiveTab()?.loadPath('此电脑');
+      if (lastSlashIndex < 3 && currentPath.includes(':\\')) {
+        this.getActiveTab()?.loadPath('此电脑');
+      } else {
+        const parentPath = currentPath.substring(0, lastSlashIndex);
+        if (parentPath) {
+          this.getActiveTab()?.loadPath(parentPath);
         } else {
-            const parentPath = currentPath.substring(0, lastSlashIndex);
-            if (parentPath) {
-                this.getActiveTab()?.loadPath(parentPath);
-            } else {
-                this.getActiveTab()?.loadPath('此电脑');
-            }
+          this.getActiveTab()?.loadPath('此电脑');
         }
+      }
     });
 
     this.backButton.addEventListener('click', () => this.getActiveTab()?.goBack());
     this.forwardButton.addEventListener('click', () => this.getActiveTab()?.goForward());
 
     document.getElementById('refresh-button').addEventListener('click', () => {
-        const currentPath = this.pathInput.value;
-        if (currentPath && currentPath !== '此电脑') {
-            this.getActiveTab()?.loadPath(currentPath);
-        }
+      const currentPath = this.pathInput.value;
+      if (currentPath && currentPath !== '此电脑') {
+        this.getActiveTab()?.loadPath(currentPath);
+      }
     });
-    
+
     this.pathInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-            const newPath = this.pathInput.value.trim();
-            this.getActiveTab()?.loadPath(newPath || '此电脑');
-        }
+      if (event.key === 'Enter') {
+        const newPath = this.pathInput.value.trim();
+        this.getActiveTab()?.loadPath(newPath || '此电脑');
+      }
     });
   }
 
@@ -241,11 +241,18 @@ class TabManager {
       this.tabs[this.activeTabId].hide();
     }
     this.activeTabId = tabId;
+
+    const index = this.visitHistory.indexOf(tabId);
+    if (index > -1) {
+      this.visitHistory.splice(index, 1);
+    }
+    this.visitHistory.push(tabId);
+
     this.tabs[tabId].show();
     this.updateNavigationButtons();
     const activeTab = this.getActiveTab();
     if (activeTab && activeTab.history.length > 0) {
-        this.setPathInputValue(activeTab.history[activeTab.historyIndex]);
+      this.setPathInputValue(activeTab.history[activeTab.historyIndex]);
     }
   }
 
@@ -255,10 +262,15 @@ class TabManager {
     tab.contentElement.remove();
     delete this.tabs[tabId];
 
+    const historyIndex = this.visitHistory.indexOf(tabId);
+    if (historyIndex > -1) {
+      this.visitHistory.splice(historyIndex, 1);
+    }
+
     if (this.activeTabId === tabId) {
-      const remainingTabIds = Object.keys(this.tabs);
-      if (remainingTabIds.length > 0) {
-        this.switchTab(remainingTabIds[0]);
+      if (this.visitHistory.length > 0) {
+        const newActiveTabId = this.visitHistory[this.visitHistory.length - 1];
+        this.switchTab(newActiveTabId);
       } else {
         this.activeTabId = null;
         this.pathInput.value = '';
@@ -266,16 +278,16 @@ class TabManager {
       }
     }
   }
-  
+
   updateNavigationButtons() {
-      const tab = this.getActiveTab();
-      if (tab) {
-          this.backButton.disabled = tab.historyIndex <= 0;
-          this.forwardButton.disabled = tab.historyIndex >= tab.history.length - 1;
-      } else {
-          this.backButton.disabled = true;
-          this.forwardButton.disabled = true;
-      }
+    const tab = this.getActiveTab();
+    if (tab) {
+      this.backButton.disabled = tab.historyIndex <= 0;
+      this.forwardButton.disabled = tab.historyIndex >= tab.history.length - 1;
+    } else {
+      this.backButton.disabled = true;
+      this.forwardButton.disabled = true;
+    }
   }
 
   getActiveTab() {
