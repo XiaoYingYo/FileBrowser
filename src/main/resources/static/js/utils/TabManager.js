@@ -88,29 +88,29 @@ class TabManager {
           case 'v':
             this.handlePaste();
             break;
-         case 'a':
-           event.preventDefault();
-           activeTab.selectAllItems();
-           break;
+          case 'a':
+            event.preventDefault();
+            activeTab.selectAllItems();
+            break;
         }
       }
     });
-   document.addEventListener('keydown', (event) => {
-     if (event.key === 'Shift') {
-       const activeTab = this.getActiveTab();
-       if (activeTab) {
-         activeTab.fileContentElement.classList.add('no-select');
-       }
-     }
-   });
-   document.addEventListener('keyup', (event) => {
-     if (event.key === 'Shift') {
-       const activeTab = this.getActiveTab();
-       if (activeTab) {
-         activeTab.fileContentElement.classList.remove('no-select');
-       }
-     }
-   });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Shift') {
+        const activeTab = this.getActiveTab();
+        if (activeTab) {
+          activeTab.fileContentElement.classList.add('no-select');
+        }
+      }
+    });
+    document.addEventListener('keyup', (event) => {
+      if (event.key === 'Shift') {
+        const activeTab = this.getActiveTab();
+        if (activeTab) {
+          activeTab.fileContentElement.classList.remove('no-select');
+        }
+      }
+    });
   }
   goBackDirectory() {
     const currentPath = this.pathInput.value;
@@ -151,7 +151,7 @@ class TabManager {
         sourcePaths: sourcePaths,
         operation: 'cut',
       };
-      sourcePaths.forEach(path => {
+      sourcePaths.forEach((path) => {
         localStorage.setItem(`${path}_mark_temp`, 'cut');
       });
       this.updateActionButtons();
@@ -173,7 +173,7 @@ class TabManager {
         sourcePaths: sourcePaths,
         operation: 'copy',
       };
-      sourcePaths.forEach(path => {
+      sourcePaths.forEach((path) => {
         localStorage.setItem(`${path}_mark_temp`, 'copy');
       });
       this.updateActionButtons();
@@ -196,7 +196,7 @@ class TabManager {
       };
       const result = await callApi('/api/fs-operation', 'POST', payload);
       if (result) {
-        this.clipboard.sourcePaths.forEach(path => {
+        this.clipboard.sourcePaths.forEach((path) => {
           localStorage.removeItem(`${path}_mark_temp`);
         });
         this.clipboard = null;
