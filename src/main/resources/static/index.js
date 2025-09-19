@@ -29,6 +29,7 @@ class Tab {
         <span class="material-icons text-xs">close</span>
       </button>`;
     this.element.addEventListener('click', () => this.tabManager.switchTab(this.id));
+    this.element.addEventListener('dblclick', () => this.tabManager.closeTab(this.id));
     this.element.querySelector('.close-tab-button').addEventListener('click', (e) => {
       e.stopPropagation();
       this.tabManager.closeTab(this.id);
