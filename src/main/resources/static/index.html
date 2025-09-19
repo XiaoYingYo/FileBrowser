@@ -11,26 +11,18 @@
   </style>
   <body class="bg-[#1e1e1e] text-white">
     <div class="flex flex-col h-screen">
-      <div class="flex items-center border-b border-gray-700">
-        <div class="flex items-center space-x-2">
-          <div class="flex items-center bg-[#2d2d2d] px-3 py-2 border-r border-gray-700">
-            <span class="material-icons text-yellow-500 text-base mr-2">folder</span>
-            <span class="text-sm">此电脑</span>
-            <button class="ml-2 p-0.5 hover:bg-gray-600 rounded">
-              <span class="material-icons text-xs">close</span>
-            </button>
-          </div>
-        </div>
-        <button class="p-2 hover:bg-gray-700 rounded-full">
+      <div id="tab-bar" class="flex items-center border-b border-gray-700">
+        <!-- Tabs will be dynamically inserted here -->
+        <button id="add-tab-button" class="p-2 hover:bg-gray-700 rounded-full">
           <span class="material-icons text-base">add</span>
         </button>
       </div>
       <div class="flex items-center p-2 border-b border-gray-700">
         <div class="flex items-center space-x-2">
-          <button class="p-1 hover:bg-gray-700 rounded disabled:opacity-50" disabled="">
+          <button id="history-back-button" class="p-1 hover:bg-gray-700 rounded disabled:opacity-50" disabled>
             <span class="material-icons">arrow_back</span>
           </button>
-          <button class="p-1 hover:bg-gray-700 rounded">
+          <button id="history-forward-button" class="p-1 hover:bg-gray-700 rounded disabled:opacity-50" disabled>
             <span class="material-icons">arrow_forward</span>
           </button>
           <button id="home-button" class="p-1 hover:bg-gray-700 rounded">
@@ -98,7 +90,8 @@
           <span>详细信息</span>
         </button>
       </div>
-      <main class="flex-grow p-4 overflow-auto">
+      <main id="content-container" class="flex-grow relative overflow-auto">
+        <!-- Content for each tab will be dynamically inserted here -->
       </main>
       <div class="border-t border-gray-700">
         <div class="bg-[#0c0c0c] rounded-t-lg">
