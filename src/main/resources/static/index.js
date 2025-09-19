@@ -134,7 +134,7 @@ class Tab {
         throw new Error('Failed to load file data or template');
       }
       const data = await filesResponse.json();
-      this.allItems = [...data.directories, ...data.files];
+      this.allItems = [];
       const listTemplate = await listTemplateResponse.text();
       const parser = new DOMParser();
       const doc = parser.parseFromString(listTemplate, 'text/html');
@@ -143,23 +143,26 @@ class Tab {
       const fileListContainer = this.contentElement.querySelector('.divide-y');
       const fileTemplate = fileListContainer.querySelector('for').innerHTML.trim();
       fileListContainer.innerHTML = '';
-      this.allItems.forEach((file) => {
-        let fileElementHtml = fileTemplate
-          .replace('{{icon}}', file.isSymbolicLink ? 'link' : file.isDirectory ? 'folder' : 'description')
-          .replace('{{iconColor}}', file.isSymbolicLink ? 'text-cyan-400' : file.isDirectory ? 'text-yellow-500' : 'text-gray-400')
-          .replace('{{extraClasses}}', file.isHidden ? 'opacity-50' : '')
-          .replace('{{fileName}}', file.name)
-          .replace('{{lastModified}}', new Date(file.lastModified).toLocaleString())
-          .replace('{{fileSize}}', file.isDirectory ? '' : formatBytes(file.size));
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = fileElementHtml;
-        const fileElement = tempDiv.firstElementChild;
-        fileElement.dataset.itemId = file.path;
-        fileElement.addEventListener('click', (e) => this.handleItemClick(e, file, fileElement));
-        if (file.isDirectory) {
-          fileElement.addEventListener('dblclick', async () => await this.loadPath(file.path));
-        }
-        fileListContainer.appendChild(fileElement);
+      [data.directories, data.files].forEach(arr => {
+        arr.forEach((file) => {
+          this.allItems.push(file);
+          let fileElementHtml = fileTemplate
+            .replace('{{icon}}', file.isSymbolicLink ? 'link' : file.isDirectory ? 'folder' : 'description')
+            .replace('{{iconColor}}', file.isSymbolicLink ? 'text-cyan-400' : file.isDirectory ? 'text-yellow-500' : 'text-gray-400')
+            .replace('{{extraClasses}}', file.isHidden ? 'opacity-50' : '')
+            .replace('{{fileName}}', file.name)
+            .replace('{{lastModified}}', new Date(file.lastModified).toLocaleString())
+            .replace('{{fileSize}}', file.isDirectory ? '' : formatBytes(file.size));
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = fileElementHtml;
+          const fileElement = tempDiv.firstElementChild;
+          fileElement.dataset.itemId = file.path;
+          fileElement.addEventListener('click', (e) => this.handleItemClick(e, file, fileElement));
+          if (file.isDirectory) {
+            fileElement.addEventListener('dblclick', async () => await this.loadPath(file.path));
+          }
+          fileListContainer.appendChild(fileElement);
+        });
       });
       this.updateItemCount();
       if (addToHistory) {
