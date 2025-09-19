@@ -232,7 +232,6 @@ class Tab {
     this.updateItemCount();
   }
   handleItemClick(event, item, element) {
-    event.preventDefault();
     event.stopPropagation();
     const isCtrlPressed = event.ctrlKey || event.metaKey;
     const isShiftPressed = event.shiftKey;
@@ -258,6 +257,12 @@ class Tab {
       this.selectedItems.add(item);
       this.lastSelectedItem = item;
     }
+    this.updateSelectionUI();
+    this.updateItemCount();
+    this.tabManager.updateActionButtons();
+  }
+  selectAllItems() {
+    this.allItems.forEach(item => this.selectedItems.add(item));
     this.updateSelectionUI();
     this.updateItemCount();
     this.tabManager.updateActionButtons();

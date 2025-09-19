@@ -72,6 +72,9 @@ body {
 .marked-cut {
   outline: 2px solid rgb(255, 0, 0);
 }
+.no-select {
+  user-select: none;
+}
 #notification-center-mask {
   display: none;
 }

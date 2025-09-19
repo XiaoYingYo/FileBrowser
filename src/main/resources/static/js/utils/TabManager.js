@@ -88,9 +88,29 @@ class TabManager {
           case 'v':
             this.handlePaste();
             break;
+         case 'a':
+           event.preventDefault();
+           activeTab.selectAllItems();
+           break;
         }
       }
     });
+   document.addEventListener('keydown', (event) => {
+     if (event.key === 'Shift') {
+       const activeTab = this.getActiveTab();
+       if (activeTab) {
+         activeTab.contentElement.classList.add('no-select');
+       }
+     }
+   });
+   document.addEventListener('keyup', (event) => {
+     if (event.key === 'Shift') {
+       const activeTab = this.getActiveTab();
+       if (activeTab) {
+         activeTab.contentElement.classList.remove('no-select');
+       }
+     }
+   });
   }
   goBackDirectory() {
     const currentPath = this.pathInput.value;
