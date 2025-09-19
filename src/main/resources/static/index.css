@@ -19,6 +19,26 @@
   -webkit-font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
 }
+.progress-bar {
+  background-color: #4a4a4a;
+  border-radius: 2px;
+  overflow: hidden;
+  height: 5px;
+}
+.progress-bar-fill {
+  background-color: #4a90e2;
+  height: 100%;
+}
+.terminal-controls button {
+  background-color: transparent;
+  border: none;
+  color: white;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+}
+.terminal-controls button:hover {
+  background-color: #3e3e3e;
+}
 .resize-handle {
   cursor: col-resize;
   width: 8px;

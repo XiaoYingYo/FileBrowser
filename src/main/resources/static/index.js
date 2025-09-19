@@ -30,6 +30,7 @@ async function loadDisks() {
         await loadFiles(disks[index].path);
       });
     });
+    document.getElementById('item-count').textContent = `${disks.length} 个项目 |`;
   } catch (error) {
     console.error('Error fetching disk data:', error);
   }
@@ -80,16 +81,21 @@ document.addEventListener('DOMContentLoaded', async function () {
 async function loadFiles(path) {
   try {
     document.getElementById('path-input').value = path;
-    const [filesResponse, listTemplateResponse] = await Promise.all([fetch(`/api/files?path=${encodeURIComponent(path)}`), fetch('./tpl/viewMode/list.html')]);
+    const [filesResponse, listCssResponse, listTemplateResponse] = await Promise.all([fetch(`/api/files?path=${encodeURIComponent(path)}`), fetch('./tpl/viewMode/css/list.css'), fetch('./tpl/viewMode/list.html')]);
     if (!filesResponse.ok) {
       throw new Error(`HTTP error! status: ${filesResponse.status}`);
+    }
+    if (!listCssResponse.ok) {
+      throw new Error(`HTTP error! status: ${listCssResponse.status}`);
     }
     if (!listTemplateResponse.ok) {
       throw new Error(`HTTP error! status: ${listTemplateResponse.status}`);
     }
     const files = await filesResponse.json();
+    const listCss = await listCssResponse.text();
     let listTemplate = await listTemplateResponse.text();
 
+    document.getElementById('view-mode-style').innerHTML = listCss;
     const parser = new DOMParser();
     const doc = parser.parseFromString(listTemplate, 'text/html');
     const newListContent = doc.querySelector('.w-full');
@@ -134,6 +140,7 @@ async function loadFiles(path) {
       
       fileListContainer.appendChild(fileElement);
     });
+    document.getElementById('item-count').textContent = `${files.length} 个项目 |`;
   } catch (error) {
     console.error('Error fetching files:', error);
   }
