@@ -175,7 +175,7 @@ class Tab {
   }
   async refresh() {
     if (this.isLoading) return;
-    const scrollPosition = this.fileContentElement.scrollTop;
+    const scrollPosition = this.fileContentElement.querySelector('#list-view-container').scrollTop || 0;
     const currentPath = this.history[this.historyIndex];
     if (currentPath !== undefined) {
       this.clearSelection();
@@ -184,7 +184,7 @@ class Tab {
       } else {
         await this.loadFiles(currentPath, false);
       }
-      this.fileContentElement.scrollTop = scrollPosition;
+      this.fileContentElement.querySelector('#list-view-container').scrollTop = scrollPosition;
     }
   }
   async goBack() {
