@@ -97,8 +97,6 @@ body {
 .close-notification:hover {
   color: white;
 }
-
-
 #notification-center-button > span:last-child {
   background-color: #ef4444; /* red-500 */
   color: white;
@@ -108,4 +106,18 @@ body {
   font-weight: bold;
   line-height: 1;
   text-align: center;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #2d2d2d;
+}
+::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #777;
 }
