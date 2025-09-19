@@ -1,40 +1,41 @@
-document.addEventListener('DOMContentLoaded', function() {
-    fetch('/api/disks')
-        .then(response => response.json())
-        .then(data => {
-            const diskList = document.getElementById('disk-list');
-            diskList.innerHTML = ''; // Clear existing content
-            data.forEach(disk => {
-                const diskElement = document.createElement('div');
-                diskElement.className = 'flex items-start p-2 hover:bg-gray-700 rounded-lg cursor-pointer';
+document.addEventListener('DOMContentLoaded', async function () {
+  try {
+    const [disksResponse, templateResponse] = await Promise.all([fetch('/api/disks'), fetch('./tpl/viewMode/disk.html')]);
 
-                const usedSpace = disk.totalSpace - disk.freeSpace;
-                const usedPercentage = (usedSpace / disk.totalSpace) * 100;
+    if (!disksResponse.ok) {
+      throw new Error(`HTTP error! status: ${disksResponse.status}`);
+    }
+    if (!templateResponse.ok) {
+      throw new Error(`HTTP error! status: ${templateResponse.status}`);
+    }
 
-                diskElement.innerHTML = `
-                    <span class="material-icons text-5xl text-gray-400">storage</span>
-                    <div class="ml-3 flex-grow">
-                        <p class="text-sm font-medium">${disk.type} (${disk.path.slice(0, 2)})</p>
-                        <div class="progress-bar mt-1">
-                            <div class="progress-bar-fill" style="width: ${usedPercentage.toFixed(2)}%"></div>
-                        </div>
-                        <p class="text-xs text-gray-400 mt-1">${formatBytes(disk.freeSpace)} 可用, 共 ${formatBytes(disk.totalSpace)}</p>
-                    </div>
-                `;
-                diskList.appendChild(diskElement);
-            });
-        })
-        .catch(error => console.error('Error fetching disk data:', error));
+    const disks = await disksResponse.json();
+    const template = await templateResponse.text();
+    const diskList = document.getElementById('disk-list');
+    diskList.innerHTML = ''; // Clear existing content
+
+    disks.forEach((disk) => {
+      const usedSpace = disk.totalSpace - disk.freeSpace;
+      const usedPercentage = (usedSpace / disk.totalSpace) * 100;
+
+      let diskElementHtml = template.replace('{{diskType}}', disk.type).replace('{{diskPath}}', disk.path.slice(0, 2)).replace('{{usedPercentage}}', usedPercentage.toFixed(2)).replace('{{freeSpace}}', formatBytes(disk.freeSpace)).replace('{{totalSpace}}', formatBytes(disk.totalSpace));
+
+      diskList.innerHTML += diskElementHtml;
+    });
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
 });
 
 function formatBytes(bytes, decimals = 2) {
-    if (bytes === 0) return '0 Bytes';
+  if (bytes === 0) {
+    return '0 Bytes';
+  }
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
