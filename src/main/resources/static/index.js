@@ -529,34 +529,35 @@ class TabManager {
 document.addEventListener('DOMContentLoaded', () => {
   const tabManager = new TabManager();
   window.tabManager = tabManager;
-  const notificationCenter = new NotificationCenter();
+  // 初始化通知中心
+  const notificationCenter = new NotificationCenter('#notification-center', '#notification-center-button', '#notification-center-mask');
   window.notificationCenter = notificationCenter;
 
-  // 添加示例通知以供演示
-  window.notificationCenter.addNotificationDetails({
-    title: '系统',
-    icon: 'settings',
-    iconColor: 'text-blue-400',
-    time: '刚才',
-    message: 'Windows 更新已可用。请重启以安装。',
-    buttons: [{ text: '立即重启', primary: true }, { text: '稍后提醒我' }],
-  });
+  // 清除HTML中的静态示例，并通过JS动态添加，以作演示
+  if (window.notificationCenter) {
+    window.notificationCenter.clearAll();
 
-  window.notificationCenter.addNotificationDetails({
-    title: '安全中心',
-    icon: 'security',
-    iconColor: 'text-green-400',
-    time: '1 小时前',
-    message: '已完成扫描。未发现威胁。',
-  });
+    window.notificationCenter.addNotification({
+      icon: 'settings',
+      iconClass: 'text-blue-400',
+      source: '系统',
+      time: '刚才',
+      message: 'Windows 更新已可用。请重启以安装。',
+      actions: [
+        { label: '立即重启', primary: true },
+        { label: '稍后提醒我', primary: false }
+      ]
+    });
 
-  window.notificationCenter.addNotificationDetails({
-    title: '邮件',
-    icon: 'mail',
-    iconColor: 'text-yellow-400',
-    time: '昨天',
-    message: '来自张三：项目进展顺利，详情见附件。',
-  });
+    window.notificationCenter.addNotification({
+      icon: 'security',
+      iconClass: 'text-green-400',
+      source: '安全中心',
+      time: '1 小时前',
+      message: '已完成扫描。未发现威胁。',
+      actions: []
+    });
+  }
 
   if (!tabManager.loadState()) {
     tabManager.addTab();
