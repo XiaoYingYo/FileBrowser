@@ -175,14 +175,16 @@ class Tab {
   }
   async refresh() {
     if (this.isLoading) return;
+    const scrollPosition = this.fileContentElement.scrollTop;
     const currentPath = this.history[this.historyIndex];
-    if (currentPath) {
+    if (currentPath !== undefined) {
       this.clearSelection();
       if (currentPath === '') {
         await this.loadDisks(false);
       } else {
         await this.loadFiles(currentPath, false);
       }
+      this.fileContentElement.scrollTop = scrollPosition;
     }
   }
   async goBack() {

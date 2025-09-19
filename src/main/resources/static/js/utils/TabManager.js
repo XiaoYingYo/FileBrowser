@@ -155,7 +155,7 @@ class TabManager {
         localStorage.setItem(`${path}_mark_temp`, 'cut');
       });
       this.updateActionButtons();
-      activeTab.refresh();
+      activeTab.updateItemMarks();
       this.broadcastEvent(activeTab.id, 'clipboard-update', {});
     }
   }
@@ -177,7 +177,7 @@ class TabManager {
         localStorage.setItem(`${path}_mark_temp`, 'copy');
       });
       this.updateActionButtons();
-      activeTab.refresh();
+      activeTab.updateItemMarks();
       this.broadcastEvent(activeTab.id, 'clipboard-update', {});
     }
   }
