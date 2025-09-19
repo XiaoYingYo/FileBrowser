@@ -23,8 +23,8 @@ class Tab {
     this.element = document.createElement('div');
     this.element.className = 'flex items-center bg-[#2d2d2d] px-3 py-2 border-r border-gray-700';
     this.element.dataset.tabId = this.id;
-    this.element.innerHTML = `<span class="material-icons text-yellow-500 text-base mr-2">folder</span>
-      <span class="text-sm">新标签页</span>
+    this.element.innerHTML = `<span class="material-icons text-yellow-500 text-base mr-2" style="cursor: default; user-select: none;">folder</span>
+      <span class="text-sm" style="cursor: default; user-select: none;">新标签页</span>
       <button class="ml-2 p-0.5 hover:bg-gray-600 rounded close-tab-button">
         <span class="material-icons text-xs">close</span>
       </button>`;
