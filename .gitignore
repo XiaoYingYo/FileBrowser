@@ -2,3 +2,4 @@ target/
 *.log
 node_modules/
 FileBrowser.zip
+plan.md

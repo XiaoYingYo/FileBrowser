@@ -1,13 +1,22 @@
 class Tab {
-  constructor(tabManager) {
+  constructor(tabManager, initialState = null) {
     this.tabManager = tabManager;
-    this.id = `tab-${Date.now()}`;
-    this.history = [];
-    this.historyIndex = -1;
+    if (initialState) {
+      this.id = initialState.id;
+      this.history = initialState.history;
+      this.historyIndex = initialState.historyIndex;
+    } else {
+      this.id = `tab-${Date.now()}`;
+      this.history = [];
+      this.historyIndex = -1;
+    }
     this.selectedItems = new Set();
     this.lastSelectedItem = null;
     this.allItems = [];
     this.createElement();
+    if (initialState) {
+      this.setTitle(initialState.title);
+    }
     this.createContentElement();
   }
   createElement() {
@@ -231,6 +240,14 @@ class Tab {
     }
     document.getElementById('item-count').textContent = text;
   }
+  toJSON() {
+    return {
+      id: this.id,
+      history: this.history,
+      historyIndex: this.historyIndex,
+      title: this.element.querySelector('.text-sm').textContent,
+    };
+  }
 }
 class TabManager {
   constructor() {
@@ -244,6 +261,7 @@ class TabManager {
     this.historyBackButton = document.getElementById('history-back-button');
     this.historyForwardButton = document.getElementById('history-forward-button');
     this.initEventListeners();
+    window.addEventListener('beforeunload', () => this.saveState());
   }
   initEventListeners() {
     this.addTabButton.addEventListener('click', () => this.addTab());
@@ -277,13 +295,16 @@ class TabManager {
       }
     });
   }
-  addTab() {
-    const tab = new Tab(this);
+  addTab(initialState = null) {
+    const tab = new Tab(this, initialState);
     this.tabs[tab.id] = tab;
     this.tabContainer.insertBefore(tab.element, this.addTabButton);
     this.contentContainer.appendChild(tab.contentElement);
-    this.switchTab(tab.id);
-    tab.loadPath('此电脑');
+    if (!initialState) {
+      this.switchTab(tab.id);
+      tab.loadPath('此电脑');
+    }
+    return tab;
   }
   switchTab(tabId) {
     if (this.activeTabId && this.tabs[this.activeTabId]) {
@@ -295,9 +316,18 @@ class TabManager {
       this.visitHistory.splice(index, 1);
     }
     this.visitHistory.push(tabId);
-    this.tabs[tabId].show();
-    this.updateNavigationButtons();
-    const activeTab = this.getActiveTab();
+   const tabToShow = this.tabs[tabId];
+   if (tabToShow.contentElement.childElementCount === 0 && tabToShow.history.length > 0) {
+     const currentPath = tabToShow.history[tabToShow.historyIndex];
+     if (currentPath === '此电脑') {
+       tabToShow.loadDisks(false);
+     } else {
+       tabToShow.loadFiles(currentPath, false);
+     }
+   }
+   tabToShow.show();
+   this.updateNavigationButtons();
+   const activeTab = this.getActiveTab();
     if (activeTab) {
       if (activeTab.history.length > 0) {
         this.setPathInputValue(activeTab.history[activeTab.historyIndex]);
@@ -341,10 +371,65 @@ class TabManager {
   setPathInputValue(value) {
     this.pathInput.value = value;
   }
+  saveState() {
+    const state = {
+      tabs: Object.values(this.tabs).map((tab) => tab.toJSON()),
+      activeTabId: this.activeTabId,
+      visitHistory: this.visitHistory,
+    };
+    localStorage.setItem('tabManagerState', JSON.stringify(state));
+  }
+  loadState() {
+    const savedState = localStorage.getItem('tabManagerState');
+    if (savedState) {
+      try {
+        const state = JSON.parse(savedState);
+        if (state.tabs && state.tabs.length > 0) {
+          state.tabs.forEach((tabState) => {
+            const tab = this.addTab(tabState);
+            this.contentContainer.appendChild(tab.contentElement);
+          });
+          this.visitHistory = state.visitHistory || [];
+          const lastActiveTabId = state.activeTabId || this.visitHistory[this.visitHistory.length - 1] || state.tabs[0].id;
+          if (this.tabs[lastActiveTabId]) {
+            this.switchTab(lastActiveTabId);
+            const activeTab = this.getActiveTab();
+            if (activeTab && activeTab.history.length > 0) {
+              const currentPath = activeTab.history[activeTab.historyIndex];
+              // Do not add to history again on initial load
+              if (currentPath === '此电脑') {
+                activeTab.loadDisks(false);
+              } else {
+                activeTab.loadFiles(currentPath, false);
+              }
+            }
+          } else if (state.tabs.length > 0) {
+            this.switchTab(state.tabs[0].id);
+            const fallbackTab = this.getActiveTab();
+            if (fallbackTab && fallbackTab.history.length > 0) {
+                const currentPath = fallbackTab.history[fallbackTab.historyIndex];
+                if (currentPath === '此电脑') {
+                    fallbackTab.loadDisks(false);
+                } else {
+                    fallbackTab.loadFiles(currentPath, false);
+                }
+            }
+          }
+          return true;
+        }
+      } catch (e) {
+        console.error('Error loading state from localStorage:', e);
+        localStorage.removeItem('tabManagerState');
+      }
+    }
+    return false;
+  }
 }
 document.addEventListener('DOMContentLoaded', () => {
   const tabManager = new TabManager();
-  tabManager.addTab();
+  if (!tabManager.loadState()) {
+    tabManager.addTab();
+  }
   const tooltip = document.getElementById('tooltip');
   const buttonsWithTooltip = document.querySelectorAll('[data-tooltip]');
   buttonsWithTooltip.forEach((button) => {
