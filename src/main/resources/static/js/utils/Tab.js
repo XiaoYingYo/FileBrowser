@@ -51,9 +51,13 @@ class Tab {
     this.contentElement.id = this.id;
     this.contentElement.className = 'h-full';
     this.contentElement.style.display = 'none';
+    this.contentElement.style['flex-direction'] = 'column';
+    this.contentElement.style['height'] = '100%';
     this.fileContentElement = document.createElement('div');
     this.fileContentElement.id = 'fileContent';
     this.fileContentElement.className = 'p-4 h-full';
+    this.fileContentElement.style['flex-grow'] = '1';
+    this.fileContentElement.style['overflow-y'] = 'auto';
     this.contentElement.appendChild(this.fileContentElement);
     this.terminalContentElement = document.createElement('div');
     this.terminalContentElement.id = 'terminalContent';
@@ -71,7 +75,7 @@ class Tab {
   }
   show() {
     this.element.classList.add('bg-[#2d2d2d]');
-    this.contentElement.style.display = 'block';
+    this.contentElement.style.display = 'flex';
   }
   hide() {
     this.element.classList.remove('bg-[#2d2d2d]');
