@@ -10,6 +10,7 @@ class Tab {
       this.history = [];
       this.historyIndex = -1;
     }
+    this.filterTerm = initialState ? initialState.filterTerm || '' : '';
     this.selectedItems = new Set();
     this.lastSelectedItem = null;
     this.allItems = [];
@@ -109,6 +110,8 @@ class Tab {
     try {
       this.setTitle('');
       this.tabManager.setPathInputValue('');
+      this.filterTerm = '';
+      this.tabManager.filterInput.value = '';
       const [disksResponse, diskViewTemplate] = await Promise.all([fetch('/api/disks'), this.tabManager.getTemplate('./tpl/viewMode/disk.html')]);
       if (!disksResponse.ok) throw new Error('Failed to load disk data');
       const disks = await disksResponse.json();
@@ -158,6 +161,9 @@ class Tab {
       this.contentElement.innerHTML = '';
       this.contentElement.appendChild(doc.querySelector('.w-full'));
       this.renderFiles(this.allItems);
+      if (this.filterTerm) {
+        this.filterFiles(this.filterTerm);
+      }
       if (addToHistory) {
         if (this.historyIndex < this.history.length - 1) {
           this.history.splice(this.historyIndex + 1);
@@ -171,6 +177,7 @@ class Tab {
     }
   }
   filterFiles(searchTerm) {
+    this.filterTerm = searchTerm;
     if (!searchTerm) {
       this.renderFiles(this.allItems);
       return;
@@ -267,6 +274,7 @@ class Tab {
       history: this.history,
       historyIndex: this.historyIndex,
       title: this.element.querySelector('.text-sm').textContent,
+      filterTerm: this.filterTerm,
     };
   }
 }
@@ -454,6 +462,7 @@ class TabManager {
       }
     }
     tabToShow.show();
+    this.filterInput.value = tabToShow.filterTerm || '';
     this.updateNavigationButtons();
     const activeTab = this.getActiveTab();
     if (activeTab) {
