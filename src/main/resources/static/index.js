@@ -222,6 +222,7 @@ class Tab {
     }
     this.updateSelectionUI();
     this.updateItemCount();
+    this.tabManager.updateActionButtons();
   }
   updateSelectionUI() {
     this.contentElement.querySelectorAll('[data-item-id]').forEach((el) => {
@@ -240,6 +241,7 @@ class Tab {
     if (updateUI) {
       this.updateSelectionUI();
       this.updateItemCount();
+      this.tabManager.updateActionButtons();
     }
   }
   updateItemCount() {
@@ -271,8 +273,32 @@ class TabManager {
     this.pathInput = document.getElementById('path-input');
     this.historyBackButton = document.getElementById('history-back-button');
     this.historyForwardButton = document.getElementById('history-forward-button');
+    this.clipboard = null;
     this.initEventListeners();
     window.addEventListener('beforeunload', () => this.saveState());
+  }
+  async callFsApi(payload) {
+    try {
+      const response = await fetch('/api/fs-operation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'API operation failed');
+      }
+      return result;
+    } catch (error) {
+      console.error('API call failed:', error);
+      alert(`操作失败: ${error.message}`);
+      return null;
+    }
   }
   initEventListeners() {
     this.addTabButton.addEventListener('click', () => this.addTab());
@@ -300,6 +326,87 @@ class TabManager {
         this.getActiveTab()?.loadPath(newPath || '此电脑');
       }
     });
+    document.getElementById('cut-button').addEventListener('click', () => this.handleCut());
+    document.getElementById('copy-button').addEventListener('click', () => this.handleCopy());
+    document.getElementById('paste-button').addEventListener('click', () => this.handlePaste());
+    document.getElementById('rename-button').addEventListener('click', () => this.handleRename());
+    document.getElementById('delete-button').addEventListener('click', () => this.handleDelete());
+  }
+  handleCut() {
+    const activeTab = this.getActiveTab();
+    if (activeTab && activeTab.selectedItems.size > 0) {
+      this.clipboard = {
+        sourcePaths: [...activeTab.selectedItems].map((item) => item.path),
+        operation: 'cut',
+      };
+      this.updateActionButtons();
+      // Optional: Add visual feedback for cut items
+    }
+  }
+  handleCopy() {
+    const activeTab = this.getActiveTab();
+    if (activeTab && activeTab.selectedItems.size > 0) {
+      this.clipboard = {
+        sourcePaths: [...activeTab.selectedItems].map((item) => item.path),
+        operation: 'copy',
+      };
+      this.updateActionButtons();
+    }
+  }
+  async handlePaste() {
+    const activeTab = this.getActiveTab();
+    if (activeTab && this.clipboard) {
+      const destinationPath = activeTab.history[activeTab.historyIndex];
+      if (destinationPath === '此电脑') {
+        alert('不能在"此电脑"中粘贴文件。');
+        return;
+      }
+      const payload = {
+        action: 'paste',
+        ...this.clipboard,
+        destinationPath,
+      };
+      const result = await this.callFsApi(payload);
+      if (result) {
+        this.clipboard = null;
+        activeTab.refresh();
+        this.updateActionButtons();
+      }
+    }
+  }
+  async handleRename() {
+    const activeTab = this.getActiveTab();
+    if (activeTab && activeTab.selectedItems.size === 1) {
+      const itemToRename = [...activeTab.selectedItems][0];
+      const newName = prompt('输入新的文件名:', itemToRename.name);
+      if (newName && newName !== itemToRename.name) {
+        const payload = {
+          action: 'rename',
+          oldPath: itemToRename.path,
+          newName: newName,
+        };
+        const result = await this.callFsApi(payload);
+        if (result) {
+          activeTab.refresh();
+        }
+      }
+    }
+  }
+  async handleDelete() {
+    const activeTab = this.getActiveTab();
+    if (activeTab && activeTab.selectedItems.size > 0) {
+      if (confirm(`确定要删除选中的 ${activeTab.selectedItems.size} 个项目吗？`)) {
+        const paths = [...activeTab.selectedItems].map((item) => item.path);
+        const payload = {
+          action: 'delete',
+          paths: paths,
+        };
+        const result = await this.callFsApi(payload);
+        if (result) {
+          activeTab.refresh();
+        }
+      }
+    }
   }
   addTab(initialState = null) {
     const tab = new Tab(this, initialState);
@@ -339,6 +446,7 @@ class TabManager {
         this.setPathInputValue(activeTab.history[activeTab.historyIndex]);
       }
       activeTab.updateItemCount();
+      this.updateActionButtons();
     }
   }
   closeTab(tabId) {
@@ -359,6 +467,23 @@ class TabManager {
         this.pathInput.value = '';
         document.getElementById('item-count').textContent = '';
       }
+    }
+    this.updateActionButtons();
+  }
+  updateActionButtons() {
+    const activeTab = this.getActiveTab();
+    const selectedCount = activeTab ? activeTab.selectedItems.size : 0;
+    document.getElementById('cut-button').disabled = selectedCount === 0;
+    document.getElementById('copy-button').disabled = selectedCount === 0;
+    document.getElementById('delete-button').disabled = selectedCount === 0;
+    document.getElementById('rename-button').disabled = selectedCount !== 1;
+    const pasteButton = document.getElementById('paste-button');
+    if (this.clipboard && this.clipboard.sourcePaths && this.clipboard.sourcePaths.length > 0) {
+      pasteButton.disabled = false;
+      pasteButton.classList.remove('disabled:opacity-50');
+    } else {
+      pasteButton.disabled = true;
+      pasteButton.classList.add('disabled:opacity-50');
     }
   }
   updateNavigationButtons() {
@@ -436,6 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!tabManager.loadState()) {
     tabManager.addTab();
   }
+  tabManager.updateActionButtons();
   const tooltip = document.getElementById('tooltip');
   const buttonsWithTooltip = document.querySelectorAll('[data-tooltip]');
   buttonsWithTooltip.forEach((button) => {

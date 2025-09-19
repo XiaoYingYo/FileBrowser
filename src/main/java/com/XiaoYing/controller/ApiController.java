@@ -14,6 +14,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -85,5 +86,57 @@ public class ApiController {
     public String openTerminal(@RequestBody Map<String, String> requestBody) {
         String path = requestBody.get("path");
         String type = requestBody.get("type");
+        return "";
+    }
+    @PostMapping("/fs-operation")
+    public Map<String, Object> fsOperation(@RequestBody Map<String, Object> payload) throws IOException {
+        String action = (String) payload.get("action");
+        Map<String, Object> response = new HashMap<>();
+        try {
+            switch (action) {
+                case "delete":
+                    List<String> pathsToDelete = (List<String>) payload.get("paths");
+                    for (String pathStr : pathsToDelete) {
+                        Path path = Paths.get(pathStr);
+                        if (Files.isDirectory(path)) {
+                            Files.walk(path)
+                                    .sorted(Comparator.reverseOrder())
+                                    .map(Path::toFile)
+                                    .forEach(File::delete);
+                        } else {
+                            Files.delete(path);
+                        }
+                    }
+                    break;
+                case "rename":
+                    String oldPathStr = (String) payload.get("oldPath");
+                    String newName = (String) payload.get("newName");
+                    Path oldPath = Paths.get(oldPathStr);
+                    Files.move(oldPath, oldPath.resolveSibling(newName));
+                    break;
+                case "paste":
+                    List<String> sourcePaths = (List<String>) payload.get("sourcePaths");
+                    String destinationPath = (String) payload.get("destinationPath");
+                    String operation = (String) payload.get("operation");
+                    Path destDir = Paths.get(destinationPath);
+                    for (String sourcePathStr : sourcePaths) {
+                        Path sourcePath = Paths.get(sourcePathStr);
+                        Path destPath = destDir.resolve(sourcePath.getFileName());
+                        if ("cut".equals(operation)) {
+                            Files.move(sourcePath, destPath, StandardCopyOption.REPLACE_EXISTING);
+                        } else {
+                            Files.copy(sourcePath, destPath, StandardCopyOption.REPLACE_EXISTING);
+                        }
+                    }
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown action: " + action);
+            }
+            response.put("success", true);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", e.getMessage());
+        }
+        return response;
     }
 }
