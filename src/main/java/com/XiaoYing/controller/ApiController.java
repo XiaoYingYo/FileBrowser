@@ -115,10 +115,7 @@ public class ApiController {
                             for (String pathStr : pathsToDelete) {
                                 Path path = Paths.get(pathStr);
                                 if (Files.isDirectory(path)) {
-                                    Files.walk(path)
-                                            .sorted(Comparator.reverseOrder())
-                                            .map(Path::toFile)
-                                            .forEach(File::delete);
+                                    Files.walk(path).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
                                 } else {
                                     Files.delete(path);
                                 }
@@ -158,18 +155,18 @@ public class ApiController {
                         }
                     }
                     break;
-               case "create":
-                   String pathStr = (String) payload.get("path");
-                   String name = (String) payload.get("name");
-                   String type = (String) payload.get("type");
-                   Path parentDir = Paths.get(pathStr);
-                   Path newPath = parentDir.resolve(name);
-                   if ("file".equals(type)) {
-                       Files.createFile(newPath);
-                   } else {
-                       Files.createDirectory(newPath);
-                   }
-                   break;
+                case "create":
+                    String pathStr = (String) payload.get("path");
+                    String name = (String) payload.get("name");
+                    String type = (String) payload.get("type");
+                    Path parentDir = Paths.get(pathStr);
+                    Path newPath = parentDir.resolve(name);
+                    if ("file".equals(type)) {
+                        Files.createFile(newPath);
+                    } else {
+                        Files.createDirectory(newPath);
+                    }
+                    break;
                 default:
                     throw new IllegalArgumentException("Unknown action: " + action);
             }
