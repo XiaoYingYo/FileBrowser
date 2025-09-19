@@ -384,7 +384,7 @@ class TabManager {
       if (result && result.undoId) {
         activeTab.refresh();
         window.notificationCenter.addNotification({
-          message: `${paths.length} 个项目已移至回收站`,
+          message: paths.join('\n') + '\n1分钟后彻底删除!',
           icon: 'info',
           actions: [
             {

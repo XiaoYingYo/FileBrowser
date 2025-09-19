@@ -177,8 +177,7 @@ public class ApiController {
                 response.put("error", "Could not cancel deletion. It may have already been completed.");
             }
         } else {
-            response.put("success", false);
-            response.put("error", "Invalid or expired undo ID.");
+            response.put("success", true);
         }
         return response;
     }
