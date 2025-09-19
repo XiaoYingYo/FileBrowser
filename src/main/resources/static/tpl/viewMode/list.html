@@ -1,27 +1,27 @@
-<main class="flex-grow p-4 overflow-auto">
-  <div class="w-full">
-    <div class="grid grid-cols-[1fr_150px_100px] gap-x-4 px-2 pb-2 border-b border-gray-700 text-sm text-gray-400">
-      <div class="flex items-center cursor-pointer hover:text-white">
-        <span>名称</span>
-      </div>
-      <div class="flex items-center cursor-pointer hover:text-white">
-        <span>修改日期</span>
-      </div>
-      <div class="flex items-center cursor-pointer hover:text-white">
-        <span>大小</span>
-      </div>
+<div class="w-full">
+  <div class="grid grid-cols-[minmax(150px,1fr)_150px_100px] gap-x-4 px-2 pb-2 border-b border-gray-700 text-sm text-gray-400">
+    <div class="flex items-center cursor-pointer hover:text-white relative">
+      <span>名称</span>
+      <!-- <div class="resize-handle"></div> -->
     </div>
-    <div class="divide-y divide-gray-800">
-      <for>
-      <div class="grid grid-cols-[1fr_150px_100px] gap-x-4 items-center p-2 hover:bg-gray-700 rounded-md cursor-pointer">
-        <div class="flex items-center">
-          <span class="material-icons {{iconColor}} text-xl mr-3">{{icon}}</span>
-          <span class="text-sm">{{fileName}}</span>
-        </div>
-        <span class="text-sm text-gray-400">{{lastModified}}</span>
-        <span class="text-sm text-gray-400">{{fileSize}}</span>
-      </div>
-      </for>
+    <div class="flex items-center cursor-pointer hover:text-white relative">
+      <span>修改日期</span>
+      <!-- <div class="resize-handle"></div> -->
+    </div>
+    <div class="flex items-center cursor-pointer hover:text-white">
+      <span>大小</span>
     </div>
   </div>
-</main>
+  <div class="divide-y divide-gray-800">
+    <for>
+    <div class="grid grid-cols-[minmax(150px,1fr)_150px_100px] gap-x-4 items-center p-2 hover:bg-gray-700 rounded-md cursor-pointer">
+      <div class="flex items-center">
+        <span class="material-icons text-yellow-500 text-xl mr-3">folder</span>
+        <span class="text-sm">文档</span>
+      </div>
+      <span class="text-sm text-gray-400">2023/10/27 10:30</span>
+      <span class="text-sm text-gray-400"></span>
+    </div>
+    </for>
+  </div>
+</div>
