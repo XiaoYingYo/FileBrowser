@@ -12,6 +12,7 @@ class Tab {
     }
     this.filterTerm = initialState ? initialState.filterTerm || '' : '';
     this.selectedItems = new Set();
+    this.isLoading = false;
     this.lastSelectedItem = null;
     this.allItems = [];
     this.createElement();
@@ -59,7 +60,7 @@ class Tab {
     this.contentElement.style.display = 'none';
   }
   async loadPath(path) {
-    if (this.history[this.historyIndex] === path) {
+    if (this.isLoading || this.history[this.historyIndex] === path) {
       return;
     }
     this.clearSelection();
@@ -70,6 +71,7 @@ class Tab {
     }
   }
   async refresh() {
+    if (this.isLoading) return;
     const currentPath = this.history[this.historyIndex];
     if (currentPath) {
       this.clearSelection();
@@ -81,32 +83,32 @@ class Tab {
     }
   }
   async goBack() {
-    if (this.historyIndex > 0) {
-      this.historyIndex--;
-      const path = this.history[this.historyIndex];
-      this.clearSelection();
-      if (path === '') {
-        await this.loadDisks(false);
-      } else {
-        await this.loadFiles(path, false);
-      }
-      this.tabManager.updateNavigationButtons();
+    if (this.isLoading || this.historyIndex <= 0) return;
+    this.historyIndex--;
+    const path = this.history[this.historyIndex];
+    this.clearSelection();
+    if (path === '') {
+      await this.loadDisks(false);
+    } else {
+      await this.loadFiles(path, false);
     }
+    this.tabManager.updateNavigationButtons();
   }
   async goForward() {
-    if (this.historyIndex < this.history.length - 1) {
-      this.historyIndex++;
-      const path = this.history[this.historyIndex];
-      this.clearSelection();
-      if (path === '') {
-        await this.loadDisks(false);
-      } else {
-        await this.loadFiles(path, false);
-      }
-      this.tabManager.updateNavigationButtons();
+    if (this.isLoading || this.historyIndex >= this.history.length - 1) return;
+    this.historyIndex++;
+    const path = this.history[this.historyIndex];
+    this.clearSelection();
+    if (path === '') {
+      await this.loadDisks(false);
+    } else {
+      await this.loadFiles(path, false);
     }
+    this.tabManager.updateNavigationButtons();
   }
   async loadDisks(addToHistory = true) {
+    if (this.isLoading) return;
+    this.isLoading = true;
     try {
       this.setTitle('');
       this.tabManager.setPathInputValue('');
@@ -144,9 +146,13 @@ class Tab {
       }
     } catch (error) {
       console.error('Error fetching disk data:', error);
+    } finally {
+      this.isLoading = false;
     }
   }
   async loadFiles(path, addToHistory = true) {
+    if (this.isLoading) return;
+    this.isLoading = true;
     try {
       this.setTitle(path.split('\\').pop() || path);
       this.tabManager.setPathInputValue(path);
@@ -174,6 +180,8 @@ class Tab {
       }
     } catch (error) {
       console.error('Error fetching files:', error);
+    } finally {
+      this.isLoading = false;
     }
   }
   filterFiles(searchTerm) {
