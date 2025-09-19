@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
@@ -40,15 +41,15 @@ public class ApiController {
                 fileInfo.put("isSymbolicLink", Files.isSymbolicLink(file));
                 fileInfo.put("isHidden", Files.isHidden(file));
                 try {
-                    fileInfo.put("size", Files.size(file));
                     fileInfo.put("lastModified", new Date(Files.getLastModifiedTime(file).toMillis()));
                 } catch (Throwable e) {
-                    fileInfo.put("size", 0L);
                     fileInfo.put("lastModified", new Date(0));
                 }
                 if (isDirectory) {
+                    fileInfo.put("size", 0L);
                     directories.add(fileInfo);
                 } else {
+                    fileInfo.put("size", Files.size(file));
                     files.add(fileInfo);
                 }
             }
@@ -61,7 +62,7 @@ public class ApiController {
         result.put("files", files);
         return result;
     }
-    
+
     @GetMapping("/disks")
     public List<Map<String, Object>> getDisks() {
         List<Map<String, Object>> disks = new ArrayList<>();

@@ -43,6 +43,12 @@ document.addEventListener('DOMContentLoaded', async function () {
   const backButton = document.getElementById('back-button');
   const refreshButton = document.getElementById('refresh-button');
 
+  const homeButton = document.getElementById('home-button');
+  homeButton.addEventListener('click', async (event) => {
+    event.preventDefault();
+    await loadDisks();
+  });
+
   backButton.addEventListener('click', async () => {
     const currentPath = pathInput.value;
     const lastSlashIndex = currentPath.lastIndexOf('\\');
