@@ -267,6 +267,7 @@ class TabManager {
   constructor() {
     this.tabs = {};
     this.activeTabId = null;
+    this.tabCount = 0;
     this.visitHistory = [];
     this.tabContainer = document.getElementById('tab-bar');
     this.contentContainer = document.getElementById('content-container');
@@ -412,6 +413,7 @@ class TabManager {
   addTab(initialState = null) {
     const tab = new Tab(this, initialState);
     this.tabs[tab.id] = tab;
+    this.tabCount++;
     this.tabContainer.insertBefore(tab.element, this.addTabButton);
     this.contentContainer.appendChild(tab.contentElement);
     if (!initialState) {
@@ -451,10 +453,15 @@ class TabManager {
     }
   }
   closeTab(tabId) {
+    if (this.tabCount === 1) {
+      this.tabs[tabId].loadPath('此电脑');
+      return;
+    }
     const tab = this.tabs[tabId];
     tab.element.remove();
     tab.contentElement.remove();
     delete this.tabs[tabId];
+    this.tabCount--;
     const historyIndex = this.visitHistory.indexOf(tabId);
     if (historyIndex > -1) {
       this.visitHistory.splice(historyIndex, 1);
