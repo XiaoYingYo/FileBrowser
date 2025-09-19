@@ -237,7 +237,7 @@ class Tab {
     const isShiftPressed = event.shiftKey;
     if (isShiftPressed && this.lastSelectedItem) {
       const lastItem = this.lastSelectedItem;
-      this.clearSelection(false);
+      this.selectedItems.clear();
       const lastIndex = this.allItems.findIndex((i) => i.path === lastItem.path);
       const currentIndex = this.allItems.findIndex((i) => i.path === item.path);
       const start = Math.min(lastIndex, currentIndex);
