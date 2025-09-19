@@ -109,11 +109,10 @@ class Tab {
     try {
       this.setTitle('此电脑');
       this.tabManager.setPathInputValue('此电脑');
-      const [disksResponse, diskTemplateResponse] = await Promise.all([fetch('/api/disks'), fetch('./tpl/viewMode/disk.html')]);
-      if (!disksResponse.ok || !diskTemplateResponse.ok) throw new Error('Failed to load disk data or template');
+      const [disksResponse, diskViewTemplate] = await Promise.all([fetch('/api/disks'), this.tabManager.getTemplate('./tpl/viewMode/disk.html')]);
+      if (!disksResponse.ok) throw new Error('Failed to load disk data');
       const disks = await disksResponse.json();
       this.allItems = disks;
-      const diskViewTemplate = await diskTemplateResponse.text();
       const diskItemTemplateMatch = diskViewTemplate.match(/<for>([\s\S]*?)<\/for>/);
       if (!diskItemTemplateMatch) throw new Error('Disk item template not found');
       const diskItemTemplate = diskItemTemplateMatch[1].trim();
@@ -148,13 +147,12 @@ class Tab {
     try {
       this.setTitle(path.split('\\').pop() || path);
       this.tabManager.setPathInputValue(path);
-      const [filesResponse, listTemplateResponse] = await Promise.all([fetch(`/api/files?path=${encodeURIComponent(path)}`), fetch('./tpl/viewMode/list.html')]);
-      if (!filesResponse.ok || !listTemplateResponse.ok) {
-        throw new Error('Failed to load file data or template');
+      const [filesResponse, listTemplate] = await Promise.all([fetch(`/api/files?path=${encodeURIComponent(path)}`), this.tabManager.getTemplate('./tpl/viewMode/list.html')]);
+      if (!filesResponse.ok) {
+        throw new Error('Failed to load file data');
       }
       const data = await filesResponse.json();
       this.allItems = [];
-      const listTemplate = await listTemplateResponse.text();
       const parser = new DOMParser();
       const doc = parser.parseFromString(listTemplate, 'text/html');
       this.contentElement.innerHTML = '';
@@ -276,8 +274,19 @@ class TabManager {
     this.historyBackButton = document.getElementById('history-back-button');
     this.historyForwardButton = document.getElementById('history-forward-button');
     this.clipboard = null;
+    this.templateCache = {};
     this.initEventListeners();
     window.addEventListener('beforeunload', () => this.saveState());
+  }
+  async getTemplate(url) {
+    if (this.templateCache[url]) {
+      return this.templateCache[url];
+    }
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Failed to load template ${url}`);
+    const template = await response.text();
+    this.templateCache[url] = template;
+    return template;
   }
   initEventListeners() {
     this.addTabButton.addEventListener('click', () => this.addTab());
