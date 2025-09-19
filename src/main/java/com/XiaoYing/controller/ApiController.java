@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.swing.filechooser.FileSystemView;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -24,7 +26,8 @@ import java.util.Map;
 @RequestMapping("/api")
 public class ApiController {
     @GetMapping("/files")
-    public List<Map<String, Object>> getFiles(@RequestParam("path") String pathStr) {
+    public Map<String, List<Map<String, Object>>> getFiles(@RequestParam("path") String pathStr) {
+        List<Map<String, Object>> directories = new ArrayList<>();
         List<Map<String, Object>> files = new ArrayList<>();
         Path directory = Paths.get(pathStr);
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
@@ -32,25 +35,31 @@ public class ApiController {
                 Map<String, Object> fileInfo = new HashMap<>();
                 fileInfo.put("name", file.getFileName().toString());
                 fileInfo.put("path", file.toAbsolutePath().toString());
-                fileInfo.put("isDirectory", Files.isDirectory(file));
-                // Add properties for symbolic links and hidden files
+                boolean isDirectory = Files.isDirectory(file);
+                fileInfo.put("isDirectory", isDirectory);
                 fileInfo.put("isSymbolicLink", Files.isSymbolicLink(file));
                 fileInfo.put("isHidden", Files.isHidden(file));
                 try {
                     fileInfo.put("size", Files.size(file));
                     fileInfo.put("lastModified", new Date(Files.getLastModifiedTime(file).toMillis()));
-                } catch (IOException e) {
-                    // Handle cases where attributes cannot be read (e.g., broken links)
+                } catch (Throwable e) {
                     fileInfo.put("size", 0L);
                     fileInfo.put("lastModified", new Date(0));
                 }
-                files.add(fileInfo);
+                if (isDirectory) {
+                    directories.add(fileInfo);
+                } else {
+                    files.add(fileInfo);
+                }
             }
-        } catch (IOException e) {
-            // Log or handle the exception appropriately
+        } catch (Throwable e) {
             e.printStackTrace();
         }
-        return files;
+
+        Map<String, List<Map<String, Object>>> result = new HashMap<>();
+        result.put("directories", directories);
+        result.put("files", files);
+        return result;
     }
     
     @GetMapping("/disks")
