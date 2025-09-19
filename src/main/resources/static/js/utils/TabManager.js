@@ -74,6 +74,22 @@ class TabManager {
         this.goBackDirectory();
         return;
       }
+      if (event.ctrlKey || event.metaKey) {
+        if (document.activeElement.tagName.toLowerCase() === 'input' || document.activeElement.isContentEditable) {
+          return;
+        }
+        switch (event.key.toLowerCase()) {
+          case 'c':
+            this.handleCopy();
+            break;
+          case 'x':
+            this.handleCut();
+            break;
+          case 'v':
+            this.handlePaste();
+            break;
+        }
+      }
     });
   }
   goBackDirectory() {
