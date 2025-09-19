@@ -5,7 +5,6 @@ class Tab {
       this.id = initialState.id;
       this.history = initialState.history;
       this.historyIndex = initialState.historyIndex;
-      this.isTerminalViewActive = initialState.isTerminalViewActive || false;
     } else {
       this.id = `tab-${Date.now()}`;
       this.history = [];
@@ -28,14 +27,6 @@ class Tab {
     this.terminals = new Map();
     this.activeTerminalId = null;
 
-    if (initialState && initialState.terminals && initialState.terminals.length > 0) {
-      initialState.terminals.forEach(terminalState => {
-        this.addTerminal(terminalState.initialPath);
-      });
-      if (initialState.activeTerminalId) {
-        this.switchTerminal(initialState.activeTerminalId);
-      }
-    }
   }
   onBroadcastReceived(eventType, payload) {
     const handler = this.eventHandlers[eventType];
@@ -105,7 +96,7 @@ class Tab {
     }
   }
   showTerminalView() {
-  	this.fileContentElement.style.display = 'flex';
+  	this.fileContentElement.style.display = 'block';
     this.terminalContentElement.style.display = 'flex';
     this.isTerminalViewActive = true;
     if (this.terminals.size === 0) {
@@ -117,7 +108,7 @@ class Tab {
     }
   }
   showFileView() {
-    this.fileContentElement.style.display = 'flex';
+    this.fileContentElement.style.display = 'block';
     this.terminalContentElement.style.display = 'none';
     this.isTerminalViewActive = false;
   }
@@ -421,20 +412,12 @@ class Tab {
     document.getElementById('item-count').textContent = text;
   }
   toJSON() {
-    const terminalsState = Array.from(this.terminals.values()).map(terminal => ({
-      id: terminal.id,
-      initialPath: terminal.currentPath
-    }));
-
     return {
       id: this.id,
       history: this.history,
       historyIndex: this.historyIndex,
       title: this.element.querySelector('.text-sm').textContent,
       filterTerm: this.filterTerm,
-      isTerminalViewActive: this.isTerminalViewActive,
-      terminals: terminalsState,
-      activeTerminalId: this.activeTerminalId,
     };
   }
 }
