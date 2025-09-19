@@ -8,6 +8,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -22,6 +28,9 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 public class ApiController {
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final Map<String, ScheduledFuture<?>> scheduledDeletions = new ConcurrentHashMap<>();
+
     @GetMapping("/files")
     public Map<String, List<Map<String, Object>>> getFiles(@RequestParam("path") String pathStr) {
         List<Map<String, Object>> directories = new ArrayList<>();
@@ -97,17 +106,31 @@ public class ApiController {
             switch (action) {
                 case "delete":
                     List<String> pathsToDelete = (List<String>) payload.get("paths");
-                    for (String pathStr : pathsToDelete) {
-                        Path path = Paths.get(pathStr);
-                        if (Files.isDirectory(path)) {
-                            Files.walk(path)
-                                    .sorted(Comparator.reverseOrder())
-                                    .map(Path::toFile)
-                                    .forEach(File::delete);
-                        } else {
-                            Files.delete(path);
+                    String undoId = UUID.randomUUID().toString();
+
+                    Runnable deleteAction = () -> {
+                        try {
+                            for (String pathStr : pathsToDelete) {
+                                Path path = Paths.get(pathStr);
+                                if (Files.isDirectory(path)) {
+                                    Files.walk(path)
+                                            .sorted(Comparator.reverseOrder())
+                                            .map(Path::toFile)
+                                            .forEach(File::delete);
+                                } else {
+                                    Files.delete(path);
+                                }
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } finally {
+                            scheduledDeletions.remove(undoId);
                         }
-                    }
+                    };
+
+                    ScheduledFuture<?> scheduledFuture = scheduler.schedule(deleteAction, 1, TimeUnit.MINUTES);
+                    scheduledDeletions.put(undoId, scheduledFuture);
+                    response.put("undoId", undoId);
                     break;
                 case "rename":
                     String oldPathStr = (String) payload.get("oldPath");
@@ -137,6 +160,29 @@ public class ApiController {
         } catch (Exception e) {
             response.put("success", false);
             response.put("error", e.getMessage());
+        }
+        return response;
+    }
+
+    @PostMapping("/undo-delete")
+    public Map<String, Object> undoDelete(@RequestBody Map<String, String> payload) {
+        String undoId = payload.get("undoId");
+        Map<String, Object> response = new HashMap<>();
+        ScheduledFuture<?> scheduledFuture = scheduledDeletions.get(undoId);
+
+        if (scheduledFuture != null) {
+            boolean cancelled = scheduledFuture.cancel(false);
+            if (cancelled) {
+                scheduledDeletions.remove(undoId);
+                response.put("success", true);
+                response.put("message", "Deletion has been cancelled.");
+            } else {
+                response.put("success", false);
+                response.put("error", "Could not cancel deletion. It may have already been completed.");
+            }
+        } else {
+            response.put("success", false);
+            response.put("error", "Invalid or expired undo ID.");
         }
         return response;
     }
