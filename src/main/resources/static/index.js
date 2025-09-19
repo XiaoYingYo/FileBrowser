@@ -8,7 +8,8 @@ document.addEventListener('DOMContentLoaded', async function () {
       throw new Error(`HTTP error! status: ${templateResponse.status}`);
     }
     const disks = await disksResponse.json();
-    const template = await templateResponse.text();
+    let template = await templateResponse.text();
+    template = template.match(/<for>([\s\S]*?)<\/for>/)[1].trim();
     const diskList = document.getElementById('disk-list');
     diskList.innerHTML = '';
     disks.forEach((disk) => {

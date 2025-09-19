@@ -9,12 +9,34 @@ import javax.swing.filechooser.FileSystemView;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
 public class ApiController {
+    @GetMapping("/files")
+    public List<Map<String, Object>> getFiles(@RequestParam("path") String path) {
+        List<Map<String, Object>> files = new ArrayList<>();
+        File directory = new File(path);
+        File[] fileList = directory.listFiles();
+        if (fileList != null) {
+            for (File file : fileList) {
+                Map<String, Object> fileInfo = new HashMap<>();
+                fileInfo.put("name", file.getName());
+                fileInfo.put("path", file.getAbsolutePath());
+                fileInfo.put("isDirectory", file.isDirectory());
+                fileInfo.put("size", file.length());
+                fileInfo.put("lastModified", new Date(file.lastModified()));
+                files.add(fileInfo);
+            }
+        }
+        return files;
+    }
+    
     @GetMapping("/disks")
     public List<Map<String, Object>> getDisks() {
         List<Map<String, Object>> disks = new ArrayList<>();
