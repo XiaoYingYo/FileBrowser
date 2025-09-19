@@ -46,7 +46,7 @@
         </div>
       </div>
       <div class="flex items-center p-2 border-b border-gray-700 space-x-4">
-        <button class="flex items-center space-x-1 px-2 py-1 bg-blue-600 rounded-md text-sm">
+        <button id="create-button" class="flex items-center space-x-1 px-2 py-1 bg-blue-600 rounded-md text-sm">
           <span class="material-icons text-base">add</span>
           <span>新建</span>
         </button>
@@ -149,12 +149,23 @@
       <footer class="p-2 border-t border-gray-700 text-xs text-gray-400">
         <span id="item-count"></span>
       </footer>
+      <div id="tooltip" class="absolute hidden bg-gray-900 text-white text-xs rounded py-1 px-2 z-50"></div>
+      <div id="create-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+          <h2>新建</h2>
+          <input id="create-input" type="text" placeholder="输入名称...">
+          <div class="modal-actions">
+            <button id="create-file-button" class="btn btn-primary">创建文件</button>
+            <button id="create-folder-button" class="btn btn-primary">创建文件夹</button>
+            <button id="cancel-create-button" class="btn">取消</button>
+          </div>
+        </div>
+      </div>
     </div>
     <script src="./js/utils/utils.js"></script>
     <script src="./js/utils/NotificationCenter.js"></script>
     <script src="./js/utils/Tab.js"></script>
     <script src="./js/utils/TabManager.js"></script>
     <script src="index.js"></script>
-    <div id="tooltip" class="absolute hidden bg-gray-900 text-white text-xs rounded py-1 px-2 z-50"></div>
   </body>
 </html>

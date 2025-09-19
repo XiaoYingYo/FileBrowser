@@ -131,12 +131,10 @@ public class ApiController {
                         }
                     };
                     ScheduledFuture<?> scheduledFuture = scheduler.schedule(deleteAction, 1, TimeUnit.MINUTES);
-
                     Map<String, Object> deletionInfo = new HashMap<>();
                     deletionInfo.put("future", scheduledFuture);
                     deletionInfo.put("paths", pathsToDelete);
                     scheduledDeletions.put(undoId, deletionInfo);
-
                     response.put("undoId", undoId);
                     break;
                 case "rename":
@@ -160,6 +158,18 @@ public class ApiController {
                         }
                     }
                     break;
+               case "create":
+                   String pathStr = (String) payload.get("path");
+                   String name = (String) payload.get("name");
+                   String type = (String) payload.get("type");
+                   Path parentDir = Paths.get(pathStr);
+                   Path newPath = parentDir.resolve(name);
+                   if ("file".equals(type)) {
+                       Files.createFile(newPath);
+                   } else {
+                       Files.createDirectory(newPath);
+                   }
+                   break;
                 default:
                     throw new IllegalArgumentException("Unknown action: " + action);
             }

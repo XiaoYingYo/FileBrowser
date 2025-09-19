@@ -44,6 +44,7 @@ class TabManager {
     document.getElementById('paste-button').addEventListener('click', () => this.handlePaste());
     document.getElementById('rename-button').addEventListener('click', () => this.handleRename());
     document.getElementById('delete-button').addEventListener('click', () => this.handleDelete());
+    document.getElementById('create-button').addEventListener('click', () => this.showCreateModal());
     this.filterInput.addEventListener('input', (e) => {
       const activeTab = this.getActiveTab();
       if (activeTab) {
@@ -251,6 +252,11 @@ class TabManager {
   updateActionButtons() {
     const activeTab = this.getActiveTab();
     const selectedCount = activeTab ? activeTab.selectedItems.size : 0;
+    const createButton = document.getElementById('create-button');
+    const isRoot = !activeTab || activeTab.history[activeTab.historyIndex] === '';
+    createButton.disabled = isRoot;
+    createButton.classList.toggle('opacity-50', isRoot);
+    createButton.classList.toggle('cursor-not-allowed', isRoot);
     document.getElementById('cut-button').disabled = selectedCount === 0;
     document.getElementById('copy-button').disabled = selectedCount === 0;
     document.getElementById('delete-button').disabled = selectedCount === 0;
@@ -272,6 +278,42 @@ class TabManager {
     } else {
       this.historyBackButton.disabled = true;
       this.historyForwardButton.disabled = true;
+    }
+  }
+  showCreateModal() {
+    const modal = document.getElementById('create-modal');
+    modal.classList.remove('hidden');
+    const createInput = document.getElementById('create-input');
+    createInput.value = '';
+    createInput.focus();
+    document.getElementById('create-file-button').onclick = () => this.handleCreate('file');
+    document.getElementById('create-folder-button').onclick = () => this.handleCreate('folder');
+    document.getElementById('cancel-create-button').onclick = () => this.hideCreateModal();
+  }
+  hideCreateModal() {
+    const modal = document.getElementById('create-modal');
+    modal.classList.add('hidden');
+  }
+  async handleCreate(type) {
+    const activeTab = this.getActiveTab();
+    if (!activeTab) return;
+    const createInput = document.getElementById('create-input');
+    const name = createInput.value.trim();
+    if (!name) {
+      alert('名称不能为空');
+      return;
+    }
+    const currentPath = activeTab.history[activeTab.historyIndex];
+    const payload = {
+      action: 'create',
+      path: currentPath,
+      name: name,
+      type: type,
+    };
+    const result = await callApi('/api/fs-operation', 'POST', payload);
+    if (result) {
+      this.hideCreateModal();
+      activeTab.refresh();
     }
   }
   getActiveTab() {
