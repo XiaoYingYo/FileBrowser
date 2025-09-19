@@ -94,9 +94,22 @@ class TabManager {
     }
     this.getActiveTab()?.loadPath(parentPath);
   }
+  broadcastEvent(senderTabId, eventType, payload) {
+    for (const tabId in this.tabs) {
+      if (tabId !== senderTabId) {
+        this.tabs[tabId].onBroadcastReceived(eventType, payload);
+      }
+    }
+  }
   handleCut() {
     const activeTab = this.getActiveTab();
     if (activeTab && activeTab.selectedItems.size > 0) {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key.endsWith('_mark_temp')) {
+          localStorage.removeItem(key);
+        }
+      }
       const sourcePaths = [...activeTab.selectedItems].map((item) => item.path);
       this.clipboard = {
         sourcePaths: sourcePaths,
@@ -107,11 +120,18 @@ class TabManager {
       });
       this.updateActionButtons();
       activeTab.refresh();
+      this.broadcastEvent(activeTab.id, 'clipboard-update', {});
     }
   }
   handleCopy() {
     const activeTab = this.getActiveTab();
     if (activeTab && activeTab.selectedItems.size > 0) {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key.endsWith('_mark_temp')) {
+          localStorage.removeItem(key);
+        }
+      }
       const sourcePaths = [...activeTab.selectedItems].map((item) => item.path);
       this.clipboard = {
         sourcePaths: sourcePaths,
@@ -122,6 +142,7 @@ class TabManager {
       });
       this.updateActionButtons();
       activeTab.refresh();
+      this.broadcastEvent(activeTab.id, 'clipboard-update', {});
     }
   }
   async handlePaste() {
@@ -145,6 +166,7 @@ class TabManager {
         this.clipboard = null;
         activeTab.refresh();
         this.updateActionButtons();
+        this.broadcastEvent(activeTab.id, 'clipboard-update', {});
       }
     }
   }

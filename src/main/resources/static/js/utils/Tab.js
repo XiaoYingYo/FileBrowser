@@ -19,7 +19,16 @@ class Tab {
     if (initialState) {
       this.setTitle(initialState.title);
     }
+    this.eventHandlers = {
+      'clipboard-update': (payload) => this.updateItemMarks()
+    };
     this.createContentElement();
+  }
+  onBroadcastReceived(eventType, payload) {
+    const handler = this.eventHandlers[eventType];
+    if (handler) {
+      handler(payload);
+    }
   }
   createElement() {
     this.element = document.createElement('div');
@@ -259,6 +268,16 @@ class Tab {
         el.classList.add('selected');
       } else {
         el.classList.remove('selected');
+      }
+    });
+  }
+  updateItemMarks() {
+    this.contentElement.querySelectorAll('[data-item-id]').forEach(el => {
+      const itemId = el.dataset.itemId;
+      const mark = localStorage.getItem(`${itemId}_mark_temp`);
+      el.classList.remove('marked-cut', 'marked-copy');
+      if (mark) {
+        el.classList.add(mark === 'cut' ? 'marked-cut' : 'marked-copy');
       }
     });
   }
