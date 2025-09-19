@@ -97,21 +97,31 @@ class TabManager {
   handleCut() {
     const activeTab = this.getActiveTab();
     if (activeTab && activeTab.selectedItems.size > 0) {
+      const sourcePaths = [...activeTab.selectedItems].map((item) => item.path);
       this.clipboard = {
-        sourcePaths: [...activeTab.selectedItems].map((item) => item.path),
+        sourcePaths: sourcePaths,
         operation: 'cut',
       };
+      sourcePaths.forEach(path => {
+        localStorage.setItem(`${path}_mark_temp`, 'cut');
+      });
       this.updateActionButtons();
+      activeTab.refresh();
     }
   }
   handleCopy() {
     const activeTab = this.getActiveTab();
     if (activeTab && activeTab.selectedItems.size > 0) {
+      const sourcePaths = [...activeTab.selectedItems].map((item) => item.path);
       this.clipboard = {
-        sourcePaths: [...activeTab.selectedItems].map((item) => item.path),
+        sourcePaths: sourcePaths,
         operation: 'copy',
       };
+      sourcePaths.forEach(path => {
+        localStorage.setItem(`${path}_mark_temp`, 'copy');
+      });
       this.updateActionButtons();
+      activeTab.refresh();
     }
   }
   async handlePaste() {
@@ -129,6 +139,9 @@ class TabManager {
       };
       const result = await callApi('/api/fs-operation', 'POST', payload);
       if (result) {
+        this.clipboard.sourcePaths.forEach(path => {
+          localStorage.removeItem(`${path}_mark_temp`);
+        });
         this.clipboard = null;
         activeTab.refresh();
         this.updateActionButtons();

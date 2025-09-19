@@ -66,6 +66,12 @@ body {
 .selected {
   background-color: rgba(59, 130, 246, 0.3);
 }
+.marked-copy {
+  outline: 2px solid rgb(59, 131, 246);
+}
+.marked-cut {
+  outline: 2px solid rgb(255, 0, 0);
+}
 #notification-center-mask {
   display: none;
 }
@@ -121,7 +127,6 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #777;
 }
-/* 弹窗样式 */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -134,11 +139,9 @@ body {
   justify-content: center;
   z-index: 1050;
 }
-
 .modal-overlay.hidden {
   display: none;
 }
-
 .modal-content {
   background-color: #2d2d2d;
   padding: 24px;
@@ -148,13 +151,11 @@ body {
   max-width: 450px;
   color: #fff;
 }
-
 .modal-content h2 {
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0 0 16px 0;
 }
-
 .modal-content input[type="text"] {
   box-sizing: border-box;
   width: 100%;
@@ -167,18 +168,15 @@ body {
   outline: none;
   transition: border-color 0.2s;
 }
-
 .modal-content input[type="text"]:focus {
   border-color: #3b82f6;
 }
-
 .modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 16px;
   margin-top: 24px;
 }
-
 .btn {
   padding: 8px 16px;
   border: none;
@@ -189,16 +187,13 @@ body {
   background-color: #4a4a4a;
   color: #fff;
 }
-
 .btn:hover {
   background-color: #5a5a5a;
 }
-
 .btn.btn-primary {
   background-color: #3b82f6;
   color: #fff;
 }
-
 .btn.btn-primary:hover {
   background-color: #2563eb;
 }

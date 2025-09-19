@@ -210,6 +210,10 @@ class Tab {
       tempDiv.innerHTML = fileElementHtml;
       const fileElement = tempDiv.firstElementChild;
       fileElement.dataset.itemId = file.path;
+      const mark = localStorage.getItem(`${file.path}_mark_temp`);
+      if (mark) {
+        fileElement.classList.add(mark === 'cut' ? 'marked-cut' : 'marked-copy');
+      }
       fileElement.addEventListener('click', (e) => this.handleItemClick(e, file, fileElement));
       if (file.isDirectory) {
         fileElement.addEventListener('dblclick', async () => await this.loadPath(file.path));

@@ -1,4 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
+  function clearTempLocalStorage() {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key.endsWith('_temp')) {
+        localStorage.removeItem(key);
+      }
+    }
+  }
+  clearTempLocalStorage();
   const tabManager = new TabManager();
   window.tabManager = tabManager;
   window.notificationActionHandlers = {
