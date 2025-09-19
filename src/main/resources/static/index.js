@@ -88,7 +88,8 @@ async function loadFiles(path) {
     if (!listTemplateResponse.ok) {
       throw new Error(`HTTP error! status: ${listTemplateResponse.status}`);
     }
-    const files = await filesResponse.json();
+    const data = await filesResponse.json();
+    const allItems = data.directories.concat(data.files);
     let listTemplate = await listTemplateResponse.text();
 
     const parser = new DOMParser();
@@ -103,7 +104,7 @@ async function loadFiles(path) {
     const fileTemplate = fileListContainer.querySelector('for').innerHTML.trim();
     fileListContainer.innerHTML = '';
 
-    files.forEach((file) => {
+    allItems.forEach((file) => {
       let fileElementHtml = fileTemplate;
       
       // Handle icons based on file type
@@ -135,7 +136,7 @@ async function loadFiles(path) {
       
       fileListContainer.appendChild(fileElement);
     });
-    document.getElementById('item-count').textContent = `${files.length} 个项目 |`;
+    document.getElementById('item-count').textContent = `${allItems.length} 个项目 |`;
   } catch (error) {
     console.error('Error fetching files:', error);
   }
