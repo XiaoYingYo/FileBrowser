@@ -50,14 +50,14 @@ class Tab {
   }
 
   async loadPath(path) {
+    if (this.history[this.historyIndex] === path) {
+      return;
+    }
     if (path === '此电脑') {
       await this.loadDisks();
     } else {
       await this.loadFiles(path);
     }
-    this.history.push(path);
-    this.historyIndex = this.history.length - 1;
-    this.tabManager.updateNavigationButtons();
   }
 
   async goBack() {
@@ -113,6 +113,9 @@ class Tab {
       });
       document.getElementById('item-count').textContent = `${disks.length} 个项目 |`;
       if (addToHistory) {
+        if (this.historyIndex < this.history.length - 1) {
+          this.history.splice(this.historyIndex + 1);
+        }
         this.history.push('此电脑');
         this.historyIndex = this.history.length - 1;
         this.tabManager.updateNavigationButtons();
@@ -164,6 +167,9 @@ class Tab {
       });
       document.getElementById('item-count').textContent = `${allItems.length} 个项目 |`;
       if (addToHistory) {
+        if (this.historyIndex < this.history.length - 1) {
+          this.history.splice(this.historyIndex + 1);
+        }
         this.history.push(path);
         this.historyIndex = this.history.length - 1;
         this.tabManager.updateNavigationButtons();
@@ -184,8 +190,8 @@ class TabManager {
     this.addTabButton = document.getElementById('add-tab-button');
     this.pathInput = document.getElementById('path-input');
 
-    this.backButton = document.getElementById('history-back-button');
-    this.forwardButton = document.getElementById('history-forward-button');
+    this.historyBackButton = document.getElementById('history-back-button');
+    this.historyForwardButton = document.getElementById('history-forward-button');
 
     this.initEventListeners();
   }
@@ -209,8 +215,8 @@ class TabManager {
       }
     });
 
-    this.backButton.addEventListener('click', () => this.getActiveTab()?.goBack());
-    this.forwardButton.addEventListener('click', () => this.getActiveTab()?.goForward());
+    this.historyBackButton.addEventListener('click', () => this.getActiveTab()?.goBack());
+    this.historyForwardButton.addEventListener('click', () => this.getActiveTab()?.goForward());
 
     document.getElementById('refresh-button').addEventListener('click', () => {
       const currentPath = this.pathInput.value;
@@ -282,11 +288,11 @@ class TabManager {
   updateNavigationButtons() {
     const tab = this.getActiveTab();
     if (tab) {
-      this.backButton.disabled = tab.historyIndex <= 0;
-      this.forwardButton.disabled = tab.historyIndex >= tab.history.length - 1;
+      this.historyBackButton.disabled = tab.historyIndex <= 0;
+      this.historyForwardButton.disabled = tab.historyIndex >= tab.history.length - 1;
     } else {
-      this.backButton.disabled = true;
-      this.forwardButton.disabled = true;
+      this.historyBackButton.disabled = true;
+      this.historyForwardButton.disabled = true;
     }
   }
 
