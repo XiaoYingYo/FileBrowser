@@ -67,6 +67,17 @@ class Tab {
       await this.loadFiles(path);
     }
   }
+  async refresh() {
+    const currentPath = this.history[this.historyIndex];
+    if (currentPath) {
+      this.clearSelection();
+      if (currentPath === '此电脑') {
+        await this.loadDisks(false);
+      } else {
+        await this.loadFiles(currentPath, false);
+      }
+    }
+  }
   async goBack() {
     if (this.historyIndex > 0) {
       this.historyIndex--;
@@ -282,12 +293,7 @@ class TabManager {
     });
     this.historyBackButton.addEventListener('click', () => this.getActiveTab()?.goBack());
     this.historyForwardButton.addEventListener('click', () => this.getActiveTab()?.goForward());
-    document.getElementById('refresh-button').addEventListener('click', () => {
-      const currentPath = this.pathInput.value;
-      if (currentPath) {
-        this.getActiveTab()?.loadPath(currentPath);
-      }
-    });
+    document.getElementById('refresh-button').addEventListener('click', () => this.getActiveTab()?.refresh());
     this.pathInput.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') {
         const newPath = this.pathInput.value.trim();

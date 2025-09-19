@@ -1,9 +1,6 @@
 package com.XiaoYing.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.swing.filechooser.FileSystemView;
 import java.io.File;
@@ -11,8 +8,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -83,5 +78,12 @@ public class ApiController {
             }
         }
         return disks;
+    }
+
+    // 为标签页打开cmd或powershell 返回唯一命令提示符标识 接受JSON BODY
+    @RequestMapping(value = "/openTerminal", method = {RequestMethod.POST})
+    public String openTerminal(@RequestBody Map<String, String> requestBody) {
+        String path = requestBody.get("path");
+        String type = requestBody.get("type");
     }
 }
