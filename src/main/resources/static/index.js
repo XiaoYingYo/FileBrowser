@@ -1,29 +1,81 @@
 document.addEventListener('DOMContentLoaded', async function () {
   try {
-    const [disksResponse, templateResponse] = await Promise.all([fetch('/api/disks'), fetch('./tpl/viewMode/disk.html')]);
+    const [disksResponse, diskTemplateResponse] = await Promise.all([
+      fetch('/api/disks'),
+      fetch('./tpl/viewMode/disk.html'),
+    ]);
     if (!disksResponse.ok) {
       throw new Error(`HTTP error! status: ${disksResponse.status}`);
     }
-    if (!templateResponse.ok) {
-      throw new Error(`HTTP error! status: ${templateResponse.status}`);
+    if (!diskTemplateResponse.ok) {
+      throw new Error(`HTTP error! status: ${diskTemplateResponse.status}`);
     }
     const disks = await disksResponse.json();
-    let template = await templateResponse.text();
-    template = template.match(/<for>([\s\S]*?)<\/for>/)[1].trim();
+    let diskTemplate = await diskTemplateResponse.text();
+    diskTemplate = diskTemplate.match(/<for>([\s\S]*?)<\/for>/)[1].trim();
     const diskList = document.getElementById('disk-list');
     diskList.innerHTML = '';
     disks.forEach((disk) => {
       const usedSpace = disk.totalSpace - disk.freeSpace;
       const usedPercentage = (usedSpace / disk.totalSpace) * 100;
-
-      let diskElementHtml = template.replace('{{diskType}}', disk.type).replace('{{diskPath}}', disk.path.slice(0, 2)).replace('{{usedPercentage}}', usedPercentage.toFixed(2)).replace('{{freeSpace}}', formatBytes(disk.freeSpace)).replace('{{totalSpace}}', formatBytes(disk.totalSpace));
-
-      diskList.innerHTML += diskElementHtml;
+      let diskElementHtml = diskTemplate
+        .replace('{{diskType}}', disk.type)
+        .replace('{{diskPath}}', disk.path.slice(0, 2))
+        .replace('{{usedPercentage}}', usedPercentage.toFixed(2))
+        .replace('{{freeSpace}}', formatBytes(disk.freeSpace))
+        .replace('{{totalSpace}}', formatBytes(disk.totalSpace));
+      const diskElement = document.createElement('div');
+      diskElement.innerHTML = diskElementHtml;
+      diskElement.firstElementChild.addEventListener('dblclick', async () => {
+        await loadFiles(disk.path);
+      });
+      diskList.appendChild(diskElement.firstElementChild);
     });
   } catch (error) {
     console.error('Error fetching data:', error);
   }
 });
+
+async function loadFiles(path) {
+  try {
+    const [filesResponse, listTemplateResponse] = await Promise.all([
+      fetch(`/api/files?path=${encodeURIComponent(path)}`),
+      fetch('./tpl/viewMode/list.html'),
+    ]);
+    if (!filesResponse.ok) {
+      throw new Error(`HTTP error! status: ${filesResponse.status}`);
+    }
+    if (!listTemplateResponse.ok) {
+      throw new Error(`HTTP error! status: ${listTemplateResponse.status}`);
+    }
+    const files = await filesResponse.json();
+    let listTemplate = await listTemplateResponse.text();
+    
+    const mainContent = document.querySelector('main');
+    mainContent.innerHTML = listTemplate;
+    const fileListContainer = mainContent.querySelector('.divide-y');
+    const fileTemplate = fileListContainer.querySelector('for').innerHTML.trim();
+    fileListContainer.innerHTML = '';
+
+    files.forEach((file) => {
+      let fileElementHtml = fileTemplate;
+      if (file.isDirectory) {
+        fileElementHtml = fileElementHtml.replace('{{icon}}', 'folder').replace('{{iconColor}}', 'text-yellow-500');
+      } else {
+        fileElementHtml = fileElementHtml.replace('{{icon}}', 'description').replace('{{iconColor}}', 'text-gray-400');
+      }
+      fileElementHtml = fileElementHtml.replace('{{fileName}}', file.name);
+      fileElementHtml = fileElementHtml.replace('{{lastModified}}', new Date(file.lastModified).toLocaleString());
+      fileElementHtml = fileElementHtml.replace('{{fileSize}}', file.isDirectory ? '' : formatBytes(file.size));
+      
+      const fileElement = document.createElement('div');
+      fileElement.innerHTML = fileElementHtml;
+      fileListContainer.appendChild(fileElement.firstElementChild);
+    });
+  } catch (error) {
+    console.error('Error fetching files:', error);
+  }
+}
 
 function formatBytes(bytes, decimals = 2) {
   if (bytes === 0) {
