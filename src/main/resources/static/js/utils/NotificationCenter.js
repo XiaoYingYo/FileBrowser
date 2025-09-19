@@ -62,7 +62,10 @@ class NotificationCenter {
           <span class="material-icons ${iconClass || ''}">${icon}</span>
           <span class="text-sm font-medium">${source}</span>
         </div>
-        <span class="text-xs text-gray-400">${time}</span>
+        <div class="flex items-center">
+            <span class="text-xs text-gray-400 mr-2">${time}</span>
+            <button class="close-notification">&times;</button>
+        </div>
       </div>
       <p class="text-sm mt-2">${message}</p>
       ${actionsHtml}
@@ -70,6 +73,10 @@ class NotificationCenter {
 
     // 新通知添加到顶部
     this.notificationContainer.prepend(notificationEl);
+
+    notificationEl.querySelector('.close-notification').addEventListener('click', () => {
+        notificationEl.remove();
+    });
   }
 
   clearAll() {
