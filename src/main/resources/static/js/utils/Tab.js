@@ -26,7 +26,6 @@ class Tab {
     this.createContentElement();
     this.terminals = new Map();
     this.activeTerminalId = null;
-
   }
   onBroadcastReceived(eventType, payload) {
     const handler = this.eventHandlers[eventType];
@@ -71,13 +70,11 @@ class Tab {
     this.terminalContentElement.style.borderTop = '2px solid #333333';
     this.terminalContentElement.innerHTML = `<div class="terminal-container flex flex-col h-full" style="width: 100%;">
         <div class="terminal-tabs flex border-b border-gray-700">
-          <!-- Terminal tabs will be dynamically inserted here -->
           <button class="p-2 hover:bg-gray-700 rounded-full add-terminal-btn">
             <span class="material-icons text-base">add</span>
           </button>
         </div>
         <div class="terminal-bodies flex-grow relative">
-          <!-- Terminal bodies will be dynamically inserted here -->
         </div>
       </div>`;
     this.contentElement.appendChild(this.terminalContentElement);
@@ -96,7 +93,7 @@ class Tab {
     }
   }
   showTerminalView() {
-  	this.fileContentElement.style.display = 'block';
+    this.fileContentElement.style.display = 'block';
     this.terminalContentElement.style.display = 'flex';
     this.isTerminalViewActive = true;
     if (this.terminals.size === 0) {
@@ -113,22 +110,18 @@ class Tab {
     this.isTerminalViewActive = false;
   }
   addTerminal(initialPath = null) {
-    const path = initialPath !== null ? initialPath : (this.history[this.historyIndex] || '');
+    const path = initialPath !== null ? initialPath : this.history[this.historyIndex] || '';
     const terminal = new TerminalInstance(this.id, path);
     this.terminals.set(terminal.id, terminal);
-
     const headerContainer = this.terminalContentElement.querySelector('.terminal-tabs');
     const bodyContainer = this.terminalContentElement.querySelector('.terminal-bodies');
-
     headerContainer.insertBefore(terminal.headerElement, headerContainer.querySelector('.add-terminal-btn'));
     bodyContainer.appendChild(terminal.bodyElement);
-
     terminal.headerElement.addEventListener('click', () => this.switchTerminal(terminal.id));
     terminal.headerElement.querySelector('.close-terminal-button').addEventListener('click', (e) => {
       e.stopPropagation();
       this.closeTerminal(terminal.id);
     });
-
     this.switchTerminal(terminal.id);
   }
   switchTerminal(terminalId) {
@@ -145,19 +138,15 @@ class Tab {
   closeTerminal(terminalId) {
     const terminal = this.terminals.get(terminalId);
     if (!terminal) return;
-
     terminal.headerElement.remove();
     terminal.bodyElement.remove();
     this.terminals.delete(terminalId);
-
     if (this.activeTerminalId === terminalId) {
       this.activeTerminalId = null;
       if (this.terminals.size > 0) {
-        // Switch to the last added terminal
         const lastTerminalId = Array.from(this.terminals.keys()).pop();
         this.switchTerminal(lastTerminalId);
       } else {
-        // If no terminals left, switch back to file view
         this.showFileView();
       }
     }
@@ -367,7 +356,7 @@ class Tab {
     this.tabManager.updateActionButtons();
   }
   selectAllItems() {
-    this.allItems.forEach(item => this.selectedItems.add(item));
+    this.allItems.forEach((item) => this.selectedItems.add(item));
     this.updateSelectionUI();
     this.updateItemCount();
     this.tabManager.updateActionButtons();
