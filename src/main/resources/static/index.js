@@ -24,17 +24,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   tabManager.updateActionButtons();
   const tooltip = document.getElementById('tooltip');
-  const buttonsWithTooltip = document.querySelectorAll('[data-tooltip]');
-  buttonsWithTooltip.forEach((button) => {
-    button.addEventListener('mouseenter', () => {
-      tooltip.textContent = button.dataset.tooltip;
+  const elementsWithTooltip = document.querySelectorAll('[data-tooltip]');
+  elementsWithTooltip.forEach((element) => {
+    element.addEventListener('mouseenter', () => {
+      tooltip.textContent = element.dataset.tooltip;
       tooltip.classList.remove('hidden');
     });
-    button.addEventListener('mousemove', (e) => {
+    element.addEventListener('mousemove', (e) => {
       tooltip.style.left = `${e.pageX + 10}px`;
       tooltip.style.top = `${e.pageY + 10}px`;
     });
-    button.addEventListener('mouseleave', () => {
+    element.addEventListener('mouseleave', () => {
       tooltip.classList.add('hidden');
     });
   });
