@@ -29,24 +29,7 @@ class TabManager {
   initEventListeners() {
     this.addTabButton.addEventListener('click', () => this.addTab());
     document.getElementById('home-button').addEventListener('click', () => this.getActiveTab()?.loadPath(''));
-    document.getElementById('back-button').addEventListener('click', () => {
-      const currentPath = this.pathInput.value;
-      if (!currentPath) return;
-      const lastSlashIndex = currentPath.lastIndexOf('\\');
-      if (lastSlashIndex === -1) {
-        this.getActiveTab()?.loadPath('');
-        return;
-      }
-      if (lastSlashIndex === 2 && currentPath.length === 3) {
-        this.getActiveTab()?.loadPath('');
-        return;
-      }
-      let parentPath = currentPath.substring(0, lastSlashIndex);
-      if (parentPath.length === 2 && parentPath.endsWith(':')) {
-        parentPath += '\\';
-      }
-      this.getActiveTab()?.loadPath(parentPath);
-    });
+    document.getElementById('back-button').addEventListener('click', () => this.goBackDirectory());
     this.historyBackButton.addEventListener('click', () => this.getActiveTab()?.goBack());
     this.historyForwardButton.addEventListener('click', () => this.getActiveTab()?.goForward());
     document.getElementById('refresh-button').addEventListener('click', () => this.getActiveTab()?.refresh());
@@ -80,13 +63,28 @@ class TabManager {
           return;
         }
         event.preventDefault();
-        const backButton = document.getElementById('back-button');
-        if (backButton) {
-          backButton.click();
-        }
+        this.goBackDirectory();
         return;
       }
     });
+  }
+  goBackDirectory() {
+    const currentPath = this.pathInput.value;
+    if (!currentPath) return;
+    const lastSlashIndex = currentPath.lastIndexOf('\\');
+    if (lastSlashIndex === -1) {
+      this.getActiveTab()?.loadPath('');
+      return;
+    }
+    if (lastSlashIndex === 2 && currentPath.length === 3) {
+      this.getActiveTab()?.loadPath('');
+      return;
+    }
+    let parentPath = currentPath.substring(0, lastSlashIndex);
+    if (parentPath.length === 2 && parentPath.endsWith(':')) {
+      parentPath += '\\';
+    }
+    this.getActiveTab()?.loadPath(parentPath);
   }
   handleCut() {
     const activeTab = this.getActiveTab();
