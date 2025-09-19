@@ -11,6 +11,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -19,20 +24,31 @@ import java.util.Map;
 @RequestMapping("/api")
 public class ApiController {
     @GetMapping("/files")
-    public List<Map<String, Object>> getFiles(@RequestParam("path") String path) {
+    public List<Map<String, Object>> getFiles(@RequestParam("path") String pathStr) {
         List<Map<String, Object>> files = new ArrayList<>();
-        File directory = new File(path);
-        File[] fileList = directory.listFiles();
-        if (fileList != null) {
-            for (File file : fileList) {
+        Path directory = Paths.get(pathStr);
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
+            for (Path file : stream) {
                 Map<String, Object> fileInfo = new HashMap<>();
-                fileInfo.put("name", file.getName());
-                fileInfo.put("path", file.getAbsolutePath());
-                fileInfo.put("isDirectory", file.isDirectory());
-                fileInfo.put("size", file.length());
-                fileInfo.put("lastModified", new Date(file.lastModified()));
+                fileInfo.put("name", file.getFileName().toString());
+                fileInfo.put("path", file.toAbsolutePath().toString());
+                fileInfo.put("isDirectory", Files.isDirectory(file));
+                // Add properties for symbolic links and hidden files
+                fileInfo.put("isSymbolicLink", Files.isSymbolicLink(file));
+                fileInfo.put("isHidden", Files.isHidden(file));
+                try {
+                    fileInfo.put("size", Files.size(file));
+                    fileInfo.put("lastModified", new Date(Files.getLastModifiedTime(file).toMillis()));
+                } catch (IOException e) {
+                    // Handle cases where attributes cannot be read (e.g., broken links)
+                    fileInfo.put("size", 0L);
+                    fileInfo.put("lastModified", new Date(0));
+                }
                 files.add(fileInfo);
             }
+        } catch (IOException e) {
+            // Log or handle the exception appropriately
+            e.printStackTrace();
         }
         return files;
     }

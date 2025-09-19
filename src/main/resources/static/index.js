@@ -65,14 +65,24 @@ async function loadFiles(path) {
 
     files.forEach((file) => {
       let fileElementHtml = fileTemplate;
-      if (file.isDirectory) {
+      
+      // Handle icons based on file type
+      if (file.isSymbolicLink) {
+        fileElementHtml = fileElementHtml.replace('{{icon}}', 'link').replace('{{iconColor}}', 'text-cyan-400');
+      } else if (file.isDirectory) {
         fileElementHtml = fileElementHtml.replace('{{icon}}', 'folder').replace('{{iconColor}}', 'text-yellow-500');
       } else {
         fileElementHtml = fileElementHtml.replace('{{icon}}', 'description').replace('{{iconColor}}', 'text-gray-400');
       }
+
+      // Handle hidden files styling
+      fileElementHtml = fileElementHtml.replace('{{extraClasses}}', file.isHidden ? 'opacity-50' : '');
+      
+      // Handle other placeholders
       fileElementHtml = fileElementHtml.replace('{{fileName}}', file.name);
       fileElementHtml = fileElementHtml.replace('{{lastModified}}', new Date(file.lastModified).toLocaleString());
       fileElementHtml = fileElementHtml.replace('{{fileSize}}', file.isDirectory ? '' : formatBytes(file.size));
+      
       const fileElement = document.createElement('div');
       fileElement.innerHTML = fileElementHtml;
       fileListContainer.appendChild(fileElement.firstElementChild);
