@@ -283,6 +283,9 @@ class TabManager {
       }
     }
     tabToShow.show();
+    if (tabToShow.listViewContainer) {
+      tabToShow.listViewContainer.scrollTop = tabToShow.scrollTop;
+    }
     this.filterInput.value = tabToShow.filterTerm || '';
     this.updateNavigationButtons();
     const activeTab = this.getActiveTab();

@@ -5,17 +5,20 @@ class Tab {
       this.id = initialState.id;
       this.history = initialState.history;
       this.historyIndex = initialState.historyIndex;
+      this.scrollTop = initialState.scrollTop || 0;
     } else {
       this.id = `tab-${Date.now()}`;
       this.history = [];
       this.historyIndex = -1;
       this.isTerminalViewActive = false;
+      this.scrollTop = 0;
     }
     this.filterTerm = initialState ? initialState.filterTerm || '' : '';
     this.selectedItems = new Set();
     this.isLoading = false;
     this.lastSelectedItem = null;
     this.allItems = [];
+    this.listViewContainer = null;
     this.createElement();
     if (initialState) {
       this.setTitle(initialState.title);
@@ -174,8 +177,10 @@ class Tab {
     }
   }
   async refresh() {
-    if (this.isLoading) return;
-    const scrollPosition = this.fileContentElement.querySelector('#list-view-container').scrollTop || 0;
+    if (this.isLoading) {
+      return;
+    }
+    this.scrollTop = this.listViewContainer.scrollTop;
     const currentPath = this.history[this.historyIndex];
     if (currentPath !== undefined) {
       this.clearSelection();
@@ -184,8 +189,8 @@ class Tab {
       } else {
         await this.loadFiles(currentPath, false);
       }
-      this.fileContentElement.querySelector('#list-view-container').scrollTop = scrollPosition;
     }
+    this.listViewContainer.scrollTop = this.scrollTop;
   }
   async goBack() {
     if (this.isLoading || this.historyIndex <= 0) return;
@@ -234,12 +239,14 @@ class Tab {
         })
         .join('');
       this.fileContentElement.innerHTML = diskViewTemplate.replace(/<for>[\s\S]*?<\/for>/, allDisksHtml);
+      this.listViewContainer = null;
       this.fileContentElement.querySelectorAll('.cursor-pointer').forEach((element, index) => {
         const disk = disks[index];
         element.dataset.itemId = disk.path;
         element.addEventListener('click', (e) => this.handleItemClick(e, disk, element));
         element.addEventListener('dblclick', async () => await this.loadPath(disk.path));
       });
+      this.fileContentElement.scrollTop = this.scrollTop;
       this.updateItemCount();
       if (addToHistory) {
         if (this.historyIndex < this.history.length - 1) {
@@ -256,7 +263,9 @@ class Tab {
     }
   }
   async loadFiles(path, addToHistory = true) {
-    if (this.isLoading) return;
+    if (this.isLoading) {
+      return;
+    }
     this.isLoading = true;
     try {
       this.setTitle(path.split('\\').pop() || path);
@@ -272,6 +281,11 @@ class Tab {
       this.fileContentElement.innerHTML = '';
       this.fileContentElement.appendChild(doc.querySelector('.w-full'));
       this.renderFiles(this.allItems);
+      this.listViewContainer = this.fileContentElement.querySelector('#list-view-container');
+      this.listViewContainer.addEventListener('scroll', () => {
+        this.scrollTop = this.listViewContainer.scrollTop;
+      });
+      this.listViewContainer.scrollTop = this.scrollTop;
       if (this.filterTerm) {
         this.filterFiles(this.filterTerm);
       }
@@ -409,6 +423,7 @@ class Tab {
       historyIndex: this.historyIndex,
       title: this.element.querySelector('.text-sm').textContent,
       filterTerm: this.filterTerm,
+      scrollTop: this.scrollTop,
     };
   }
 }
