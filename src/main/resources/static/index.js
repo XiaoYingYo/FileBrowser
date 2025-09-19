@@ -32,10 +32,41 @@ document.addEventListener('DOMContentLoaded', async function () {
   } catch (error) {
     console.error('Error fetching data:', error);
   }
+
+  const pathInput = document.getElementById('path-input');
+  const backButton = document.getElementById('back-button');
+  const refreshButton = document.getElementById('refresh-button');
+
+  backButton.addEventListener('click', async () => {
+    const currentPath = pathInput.value;
+    if (currentPath.includes('\\')) {
+      const parentPath = currentPath.substring(0, currentPath.lastIndexOf('\\'));
+      if (parentPath) {
+        await loadFiles(parentPath);
+      }
+    }
+  });
+
+  refreshButton.addEventListener('click', async () => {
+    const currentPath = pathInput.value;
+    if (currentPath) {
+      await loadFiles(currentPath);
+    }
+  });
+
+  pathInput.addEventListener('keydown', async (event) => {
+    if (event.key === 'Enter') {
+      const newPath = pathInput.value;
+      if (newPath) {
+        await loadFiles(newPath);
+      }
+    }
+  });
 });
 
 async function loadFiles(path) {
   try {
+    document.getElementById('path-input').value = path;
     const [filesResponse, listCssResponse, listTemplateResponse] = await Promise.all([fetch(`/api/files?path=${encodeURIComponent(path)}`), fetch('./tpl/viewMode/css/list.css'), fetch('./tpl/viewMode/list.html')]);
     if (!filesResponse.ok) {
       throw new Error(`HTTP error! status: ${filesResponse.status}`);
@@ -83,9 +114,17 @@ async function loadFiles(path) {
       fileElementHtml = fileElementHtml.replace('{{lastModified}}', new Date(file.lastModified).toLocaleString());
       fileElementHtml = fileElementHtml.replace('{{fileSize}}', file.isDirectory ? '' : formatBytes(file.size));
       
-      const fileElement = document.createElement('div');
-      fileElement.innerHTML = fileElementHtml;
-      fileListContainer.appendChild(fileElement.firstElementChild);
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = fileElementHtml;
+      const fileElement = tempDiv.firstElementChild;
+
+      if (file.isDirectory) {
+        fileElement.addEventListener('dblclick', async () => {
+          await loadFiles(file.path);
+        });
+      }
+      
+      fileListContainer.appendChild(fileElement);
     });
   } catch (error) {
     console.error('Error fetching files:', error);
