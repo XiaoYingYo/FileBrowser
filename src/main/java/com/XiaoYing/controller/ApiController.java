@@ -124,7 +124,7 @@ public class ApiController {
                             e.printStackTrace();
                         } finally {
                             scheduledDeletions.remove(undoId);
-                            pendingDeletions.removeAll(pathsToDelete); // Clean up paths
+                            pendingDeletions.removeAll(pathsToDelete);
                         }
                     };
                     ScheduledFuture<?> scheduledFuture = scheduler.schedule(deleteAction, 1, TimeUnit.MINUTES);
