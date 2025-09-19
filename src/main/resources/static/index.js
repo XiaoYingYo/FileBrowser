@@ -308,6 +308,25 @@ class TabManager {
 document.addEventListener('DOMContentLoaded', () => {
   const tabManager = new TabManager();
   tabManager.addTab();
+
+  const tooltip = document.getElementById('tooltip');
+  const buttonsWithTooltip = document.querySelectorAll('[data-tooltip]');
+
+  buttonsWithTooltip.forEach(button => {
+    button.addEventListener('mouseenter', () => {
+      tooltip.textContent = button.dataset.tooltip;
+      tooltip.classList.remove('hidden');
+    });
+
+    button.addEventListener('mousemove', (e) => {
+      tooltip.style.left = `${e.pageX + 10}px`;
+      tooltip.style.top = `${e.pageY + 10}px`;
+    });
+
+    button.addEventListener('mouseleave', () => {
+      tooltip.classList.add('hidden');
+    });
+  });
 });
 
 function formatBytes(bytes, decimals = 2) {

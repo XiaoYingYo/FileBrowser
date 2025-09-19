@@ -52,22 +52,22 @@
           <span>新建</span>
         </button>
         <div class="flex items-center space-x-2">
-          <button class="p-1 hover:bg-gray-700 rounded">
+          <button class="p-1 hover:bg-gray-700 rounded" data-tooltip="剪切">
             <span class="material-icons text-base">content_cut</span>
           </button>
-          <button class="p-1 hover:bg-gray-700 rounded">
+          <button class="p-1 hover:bg-gray-700 rounded" data-tooltip="复制">
             <span class="material-icons text-base">content_copy</span>
           </button>
-          <button class="p-1 hover:bg-gray-700 rounded">
+          <button class="p-1 hover:bg-gray-700 rounded" data-tooltip="粘贴">
             <span class="material-icons text-base">content_paste</span>
           </button>
-          <button class="p-1 hover:bg-gray-700 rounded">
+          <button class="p-1 hover:bg-gray-700 rounded" data-tooltip="重命名">
             <span class="material-icons text-base">drive_file_rename_outline</span>
           </button>
-          <button class="p-1 hover:bg-gray-700 rounded">
+          <button class="p-1 hover:bg-gray-700 rounded" data-tooltip="分享">
             <span class="material-icons text-base">share</span>
           </button>
-          <button class="p-1 hover:bg-gray-700 rounded">
+          <button class="p-1 hover:bg-gray-700 rounded" data-tooltip="删除">
             <span class="material-icons text-base">delete</span>
           </button>
         </div>
@@ -141,5 +141,6 @@
       </footer>
     </div>
     <script src="index.js"></script>
+    <div id="tooltip" class="absolute hidden bg-gray-900 text-white text-xs rounded py-1 px-2 z-50"></div>
   </body>
 </html>

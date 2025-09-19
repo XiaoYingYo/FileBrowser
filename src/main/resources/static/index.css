@@ -4,6 +4,10 @@
   font-weight: 400;
   src: url(./woff/IuiaDsNc.woff2) format('woff2');
 }
+#tooltip {
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
 .material-icons {
   font-family: 'Material Icons';
   font-weight: normal;
