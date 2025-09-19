@@ -11,25 +11,31 @@ document.addEventListener('DOMContentLoaded', async function () {
       throw new Error(`HTTP error! status: ${diskTemplateResponse.status}`);
     }
     const disks = await disksResponse.json();
-    let diskTemplate = await diskTemplateResponse.text();
-    diskTemplate = diskTemplate.match(/<for>([\s\S]*?)<\/for>/)[1].trim();
-    const diskList = document.getElementById('disk-list');
-    diskList.innerHTML = '';
+    const diskViewTemplate = await diskTemplateResponse.text();
+    const diskItemTemplate = diskViewTemplate.match(/<for>([\s\S]*?)<\/for>/)[1].trim();
+    
+    let allDisksHtml = '';
     disks.forEach((disk) => {
       const usedSpace = disk.totalSpace - disk.freeSpace;
       const usedPercentage = (usedSpace / disk.totalSpace) * 100;
-      let diskElementHtml = diskTemplate
+      allDisksHtml += diskItemTemplate
         .replace('{{diskType}}', disk.type)
         .replace('{{diskPath}}', disk.path.slice(0, 2))
         .replace('{{usedPercentage}}', usedPercentage.toFixed(2))
         .replace('{{freeSpace}}', formatBytes(disk.freeSpace))
         .replace('{{totalSpace}}', formatBytes(disk.totalSpace));
-      const diskElement = document.createElement('div');
-      diskElement.innerHTML = diskElementHtml;
-      diskElement.firstElementChild.addEventListener('dblclick', async () => {
-        await loadFiles(disk.path);
+    });
+
+    const finalHtml = diskViewTemplate.replace(/<for>[\s\S]*?<\/for>/, allDisksHtml);
+    
+    const mainContent = document.querySelector('main');
+    mainContent.innerHTML = finalHtml;
+    
+    const diskElements = mainContent.querySelectorAll('.cursor-pointer');
+    diskElements.forEach((element, index) => {
+      element.addEventListener('dblclick', async () => {
+        await loadFiles(disks[index].path);
       });
-      diskList.appendChild(diskElement.firstElementChild);
     });
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -51,8 +57,14 @@ async function loadFiles(path) {
     const files = await filesResponse.json();
     let listTemplate = await listTemplateResponse.text();
     
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(listTemplate, 'text/html');
+    const newListContent = doc.querySelector('.w-full');
+
     const mainContent = document.querySelector('main');
-    mainContent.innerHTML = listTemplate;
+    mainContent.innerHTML = '';
+    mainContent.appendChild(newListContent);
+
     const fileListContainer = mainContent.querySelector('.divide-y');
     const fileTemplate = fileListContainer.querySelector('for').innerHTML.trim();
     fileListContainer.innerHTML = '';
