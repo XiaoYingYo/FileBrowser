@@ -50,6 +50,13 @@ class TabManager {
         activeTab.filterFiles(e.target.value);
       }
     });
+    this.filterInput.addEventListener('dblclick', (e) => {
+      e.target.value = '';
+      const activeTab = this.getActiveTab();
+      if (activeTab) {
+        activeTab.filterFiles('');
+      }
+    });
     document.addEventListener('keydown', (event) => {
       const activeTab = this.getActiveTab();
       if (!activeTab) return;
