@@ -47,28 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
       tooltip.classList.add('hidden');
     });
   });
+  document.getElementById('toggle-terminal-view-button').addEventListener('click', () => {
+    const activeTab = window.tabManager.getActiveTab();
+    if (activeTab) {
+      activeTab.toggleView();
+    }
+  });
 });
-
-const terminalContainer = document.getElementById('terminal-container');
-const terminalResizer = document.getElementById('terminal-resizer');
-const terminalMinimizeButton = document.getElementById('terminal-minimize-button');
-const minimizeIcon = terminalMinimizeButton.querySelector('.material-icons');
-const updateTerminalIcon = () => {
-  if (terminalContainer.classList.contains('collapsed')) {
-    minimizeIcon.textContent = 'web_asset';
-  } else {
-    minimizeIcon.textContent = 'remove';
-  }
-};
-const toggleTerminal = () => {
-  terminalContainer.classList.toggle('collapsed');
-  localStorage.setItem('terminalCollapsed', terminalContainer.classList.contains('collapsed'));
-  updateTerminalIcon();
-};
-terminalMinimizeButton.addEventListener('click', toggleTerminal);
-terminalResizer.addEventListener('click', (e) => {
-  if (e.target === terminalResizer) {
-    toggleTerminal();
-  }
-});
-updateTerminalIcon();

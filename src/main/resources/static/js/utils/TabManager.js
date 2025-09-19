@@ -415,6 +415,10 @@ class TabManager {
           const lastActiveTabId = state.activeTabId || this.visitHistory[this.visitHistory.length - 1] || state.tabs[0].id;
           if (this.tabs[lastActiveTabId]) {
             this.switchTab(lastActiveTabId);
+            const activeTab = this.tabs[lastActiveTabId];
+            if (activeTab && activeTab.isTerminalViewActive) {
+              activeTab.showTerminalView();
+            }
           } else if (state.tabs.length > 0) {
             this.switchTab(state.tabs[0].id);
           }

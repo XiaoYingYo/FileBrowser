@@ -5,10 +5,12 @@ class Tab {
       this.id = initialState.id;
       this.history = initialState.history;
       this.historyIndex = initialState.historyIndex;
+      this.isTerminalViewActive = initialState.isTerminalViewActive || false;
     } else {
       this.id = `tab-${Date.now()}`;
       this.history = [];
       this.historyIndex = -1;
+      this.isTerminalViewActive = false;
     }
     this.filterTerm = initialState ? initialState.filterTerm || '' : '';
     this.selectedItems = new Set();
@@ -23,6 +25,17 @@ class Tab {
       'clipboard-update': (payload) => this.updateItemMarks(),
     };
     this.createContentElement();
+    this.terminals = new Map();
+    this.activeTerminalId = null;
+
+    if (initialState && initialState.terminals && initialState.terminals.length > 0) {
+      initialState.terminals.forEach(terminalState => {
+        this.addTerminal(terminalState.initialPath);
+      });
+      if (initialState.activeTerminalId) {
+        this.switchTerminal(initialState.activeTerminalId);
+      }
+    }
   }
   onBroadcastReceived(eventType, payload) {
     const handler = this.eventHandlers[eventType];
@@ -63,12 +76,99 @@ class Tab {
     this.terminalContentElement.id = 'terminalContent';
     this.terminalContentElement.className = 'h-full';
     this.terminalContentElement.style.display = 'none';
+    this.terminalContentElement.style.width = '100%';
+    this.terminalContentElement.innerHTML = `<div class="terminal-container flex flex-col h-full" style="width: 100%;">
+        <div class="terminal-tabs flex border-b border-gray-700">
+          <!-- Terminal tabs will be dynamically inserted here -->
+          <button class="p-2 hover:bg-gray-700 rounded-full add-terminal-btn">
+            <span class="material-icons text-base">add</span>
+          </button>
+        </div>
+        <div class="terminal-bodies flex-grow relative">
+          <!-- Terminal bodies will be dynamically inserted here -->
+        </div>
+      </div>`;
     this.contentElement.appendChild(this.terminalContentElement);
     this.fileContentElement.addEventListener('click', (e) => {
       if (e.target === this.fileContentElement) {
         this.clearSelection();
       }
     });
+    this.terminalContentElement.querySelector('.add-terminal-btn').addEventListener('click', () => this.addTerminal());
+  }
+  toggleView() {
+    if (this.isTerminalViewActive) {
+      this.showFileView();
+    } else {
+      this.showTerminalView();
+    }
+  }
+  showTerminalView() {
+  	this.fileContentElement.style.display = 'flex';
+    this.terminalContentElement.style.display = 'flex';
+    this.isTerminalViewActive = true;
+    if (this.terminals.size === 0) {
+      this.addTerminal();
+    }
+    const activeTerminal = this.terminals.get(this.activeTerminalId);
+    if (activeTerminal) {
+      activeTerminal.focus();
+    }
+  }
+  showFileView() {
+    this.fileContentElement.style.display = 'flex';
+    this.terminalContentElement.style.display = 'none';
+    this.isTerminalViewActive = false;
+  }
+  addTerminal(initialPath = null) {
+    const path = initialPath !== null ? initialPath : (this.history[this.historyIndex] || '');
+    const terminal = new TerminalInstance(this.id, path);
+    this.terminals.set(terminal.id, terminal);
+
+    const headerContainer = this.terminalContentElement.querySelector('.terminal-tabs');
+    const bodyContainer = this.terminalContentElement.querySelector('.terminal-bodies');
+
+    headerContainer.insertBefore(terminal.headerElement, headerContainer.querySelector('.add-terminal-btn'));
+    bodyContainer.appendChild(terminal.bodyElement);
+
+    terminal.headerElement.addEventListener('click', () => this.switchTerminal(terminal.id));
+    terminal.headerElement.querySelector('.close-terminal-button').addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.closeTerminal(terminal.id);
+    });
+
+    this.switchTerminal(terminal.id);
+  }
+  switchTerminal(terminalId) {
+    if (this.activeTerminalId && this.terminals.has(this.activeTerminalId)) {
+      this.terminals.get(this.activeTerminalId).hide();
+    }
+    this.activeTerminalId = terminalId;
+    const activeTerminal = this.terminals.get(this.activeTerminalId);
+    if (activeTerminal) {
+      activeTerminal.show();
+      activeTerminal.focus();
+    }
+  }
+  closeTerminal(terminalId) {
+    const terminal = this.terminals.get(terminalId);
+    if (!terminal) return;
+
+    terminal.headerElement.remove();
+    terminal.bodyElement.remove();
+    this.terminals.delete(terminalId);
+
+    if (this.activeTerminalId === terminalId) {
+      this.activeTerminalId = null;
+      if (this.terminals.size > 0) {
+        // Switch to the last added terminal
+        const lastTerminalId = Array.from(this.terminals.keys()).pop();
+        this.switchTerminal(lastTerminalId);
+      } else {
+        // If no terminals left, switch back to file view
+        this.showFileView();
+      }
+    }
   }
   setTitle(title) {
     this.element.querySelector('.text-sm').textContent = title;
@@ -320,12 +420,20 @@ class Tab {
     document.getElementById('item-count').textContent = text;
   }
   toJSON() {
+    const terminalsState = Array.from(this.terminals.values()).map(terminal => ({
+      id: terminal.id,
+      initialPath: terminal.currentPath
+    }));
+
     return {
       id: this.id,
       history: this.history,
       historyIndex: this.historyIndex,
       title: this.element.querySelector('.text-sm').textContent,
       filterTerm: this.filterTerm,
+      isTerminalViewActive: this.isTerminalViewActive,
+      terminals: terminalsState,
+      activeTerminalId: this.activeTerminalId,
     };
   }
 }
