@@ -62,7 +62,7 @@ class Tab {
       return;
     }
     this.clearSelection();
-    if (path === '此电脑') {
+    if (path === '') {
       await this.loadDisks();
     } else {
       await this.loadFiles(path);
@@ -72,7 +72,7 @@ class Tab {
     const currentPath = this.history[this.historyIndex];
     if (currentPath) {
       this.clearSelection();
-      if (currentPath === '此电脑') {
+      if (currentPath === '') {
         await this.loadDisks(false);
       } else {
         await this.loadFiles(currentPath, false);
@@ -84,7 +84,7 @@ class Tab {
       this.historyIndex--;
       const path = this.history[this.historyIndex];
       this.clearSelection();
-      if (path === '此电脑') {
+      if (path === '') {
         await this.loadDisks(false);
       } else {
         await this.loadFiles(path, false);
@@ -97,7 +97,7 @@ class Tab {
       this.historyIndex++;
       const path = this.history[this.historyIndex];
       this.clearSelection();
-      if (path === '此电脑') {
+      if (path === '') {
         await this.loadDisks(false);
       } else {
         await this.loadFiles(path, false);
@@ -107,8 +107,8 @@ class Tab {
   }
   async loadDisks(addToHistory = true) {
     try {
-      this.setTitle('此电脑');
-      this.tabManager.setPathInputValue('此电脑');
+      this.setTitle('');
+      this.tabManager.setPathInputValue('');
       const [disksResponse, diskViewTemplate] = await Promise.all([fetch('/api/disks'), this.tabManager.getTemplate('./tpl/viewMode/disk.html')]);
       if (!disksResponse.ok) throw new Error('Failed to load disk data');
       const disks = await disksResponse.json();
@@ -135,7 +135,7 @@ class Tab {
         if (this.historyIndex < this.history.length - 1) {
           this.history.splice(this.historyIndex + 1);
         }
-        this.history.push('此电脑');
+        this.history.push('');
         this.historyIndex = this.history.length - 1;
         this.tabManager.updateNavigationButtons();
       }
@@ -290,18 +290,18 @@ class TabManager {
   }
   initEventListeners() {
     this.addTabButton.addEventListener('click', () => this.addTab());
-    document.getElementById('home-button').addEventListener('click', () => this.getActiveTab()?.loadPath('此电脑'));
+    document.getElementById('home-button').addEventListener('click', () => this.getActiveTab()?.loadPath(''));
     document.getElementById('back-button').addEventListener('click', () => {
       const currentPath = this.pathInput.value;
       const lastSlashIndex = currentPath.lastIndexOf('\\');
       if (lastSlashIndex < 3 && currentPath.includes(':\\')) {
-        this.getActiveTab()?.loadPath('此电脑');
+        this.getActiveTab()?.loadPath('');
       } else {
         const parentPath = currentPath.substring(0, lastSlashIndex);
         if (parentPath) {
           this.getActiveTab()?.loadPath(parentPath);
         } else {
-          this.getActiveTab()?.loadPath('此电脑');
+          this.getActiveTab()?.loadPath('');
         }
       }
     });
@@ -311,7 +311,7 @@ class TabManager {
     this.pathInput.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') {
         const newPath = this.pathInput.value.trim();
-        this.getActiveTab()?.loadPath(newPath || '此电脑');
+        this.getActiveTab()?.loadPath(newPath || '');
       }
     });
     document.getElementById('cut-button').addEventListener('click', () => this.handleCut());
@@ -344,8 +344,8 @@ class TabManager {
     const activeTab = this.getActiveTab();
     if (activeTab && this.clipboard) {
       const destinationPath = activeTab.history[activeTab.historyIndex];
-      if (destinationPath === '此电脑') {
-        alert('不能在"此电脑"中粘贴文件。');
+      if (destinationPath === '') {
+        alert('不能在此处粘贴文件。');
         return;
       }
       const payload = {
@@ -414,7 +414,7 @@ class TabManager {
     this.contentContainer.appendChild(tab.contentElement);
     if (!initialState) {
       this.switchTab(tab.id);
-      tab.loadPath('此电脑');
+      tab.loadPath('');
     }
     return tab;
   }
@@ -431,7 +431,7 @@ class TabManager {
     const tabToShow = this.tabs[tabId];
     if (tabToShow.contentElement.childElementCount === 0 && tabToShow.history.length > 0) {
       const currentPath = tabToShow.history[tabToShow.historyIndex];
-      if (currentPath === '此电脑') {
+      if (currentPath === '') {
         tabToShow.loadDisks(false);
       } else {
         tabToShow.loadFiles(currentPath, false);
@@ -450,7 +450,7 @@ class TabManager {
   }
   closeTab(tabId) {
     if (this.tabCount === 1) {
-      this.tabs[tabId].loadPath('此电脑');
+      this.tabs[tabId].loadPath('');
       return;
     }
     const tab = this.tabs[tabId];

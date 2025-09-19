@@ -81,15 +81,13 @@ public class ApiController {
         for (File root : roots) {
             if (fsv.isDrive(root) && !fsv.isFloppyDrive(root) && root.canRead() && root.getTotalSpace() > 0) {
                 String typeDescription = fsv.getSystemTypeDescription(root);
-                if (typeDescription != null && (typeDescription.contains("Local Disk") || typeDescription.contains("本地磁盘"))) {
-                    Map<String, Object> diskInfo = new HashMap<>();
-                    diskInfo.put("path", root.getAbsolutePath());
-                    diskInfo.put("type", typeDescription);
-                    diskInfo.put("totalSpace", root.getTotalSpace());
-                    diskInfo.put("freeSpace", root.getFreeSpace());
-                    diskInfo.put("usableSpace", root.getUsableSpace());
-                    disks.add(diskInfo);
-                }
+                Map<String, Object> diskInfo = new HashMap<>();
+                diskInfo.put("path", root.getAbsolutePath());
+                diskInfo.put("type", typeDescription);
+                diskInfo.put("totalSpace", root.getTotalSpace());
+                diskInfo.put("freeSpace", root.getFreeSpace());
+                diskInfo.put("usableSpace", root.getUsableSpace());
+                disks.add(diskInfo);
             }
         }
         return disks;
@@ -133,7 +131,7 @@ public class ApiController {
                         }
                     };
                     ScheduledFuture<?> scheduledFuture = scheduler.schedule(deleteAction, 1, TimeUnit.MINUTES);
-                    
+
                     Map<String, Object> deletionInfo = new HashMap<>();
                     deletionInfo.put("future", scheduledFuture);
                     deletionInfo.put("paths", pathsToDelete);
