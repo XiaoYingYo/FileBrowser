@@ -1,3 +1,27 @@
+async function callFsApi(payload) {
+  try {
+    const response = await fetch('/api/fs-operation', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const result = await response.json();
+    if (!result.success) {
+      throw new Error(result.error || 'API operation failed');
+    }
+    return result;
+  } catch (error) {
+    console.error('API call failed:', error);
+    alert(`操作失败: ${error.message}`);
+    return null;
+  }
+}
+
 class Tab {
   constructor(tabManager, initialState = null) {
     this.tabManager = tabManager;
@@ -162,7 +186,7 @@ class Tab {
       const fileListContainer = this.contentElement.querySelector('.divide-y');
       const fileTemplate = fileListContainer.querySelector('for').innerHTML.trim();
       fileListContainer.innerHTML = '';
-      [data.directories, data.files].forEach(arr => {
+      [data.directories, data.files].forEach((arr) => {
         arr.forEach((file) => {
           this.allItems.push(file);
           let fileElementHtml = fileTemplate
@@ -278,29 +302,6 @@ class TabManager {
     this.clipboard = null;
     this.initEventListeners();
     window.addEventListener('beforeunload', () => this.saveState());
-  }
-  async callFsApi(payload) {
-    try {
-      const response = await fetch('/api/fs-operation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const result = await response.json();
-      if (!result.success) {
-        throw new Error(result.error || 'API operation failed');
-      }
-      return result;
-    } catch (error) {
-      console.error('API call failed:', error);
-      alert(`操作失败: ${error.message}`);
-      return null;
-    }
   }
   initEventListeners() {
     this.addTabButton.addEventListener('click', () => this.addTab());
@@ -432,18 +433,18 @@ class TabManager {
       this.visitHistory.splice(index, 1);
     }
     this.visitHistory.push(tabId);
-   const tabToShow = this.tabs[tabId];
-   if (tabToShow.contentElement.childElementCount === 0 && tabToShow.history.length > 0) {
-     const currentPath = tabToShow.history[tabToShow.historyIndex];
-     if (currentPath === '此电脑') {
-       tabToShow.loadDisks(false);
-     } else {
-       tabToShow.loadFiles(currentPath, false);
-     }
-   }
-   tabToShow.show();
-   this.updateNavigationButtons();
-   const activeTab = this.getActiveTab();
+    const tabToShow = this.tabs[tabId];
+    if (tabToShow.contentElement.childElementCount === 0 && tabToShow.history.length > 0) {
+      const currentPath = tabToShow.history[tabToShow.historyIndex];
+      if (currentPath === '此电脑') {
+        tabToShow.loadDisks(false);
+      } else {
+        tabToShow.loadFiles(currentPath, false);
+      }
+    }
+    tabToShow.show();
+    this.updateNavigationButtons();
+    const activeTab = this.getActiveTab();
     if (activeTab) {
       if (activeTab.history.length > 0) {
         this.setPathInputValue(activeTab.history[activeTab.historyIndex]);
