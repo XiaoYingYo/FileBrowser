@@ -272,13 +272,7 @@ class TabManager {
         filePath: selectedFile.path
       });
       if (result && result.success) {
-        await navigator.clipboard.writeText(result.shareUrl);
-        window.notificationCenter.addNotification({
-          type: 'success',
-          title: '分享成功',
-          message: `下载链接已复制到剪贴板\n${result.shareUrl}`,
-          timestamp: new Date()
-        });
+        navigator.clipboard.writeText(result.shareUrl);
       }
     } catch (error) {
       window.notificationCenter.addNotification({

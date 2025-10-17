@@ -90,21 +90,22 @@ class NotificationCenter {
     const { id, icon = 'info', iconClass = '', source = '系统', time = '刚才', message, actions, expires } = notification;
     const notificationEl = document.createElement('div');
     notificationEl.className = 'bg-[#2d2d2d] p-3 rounded-lg';
+    notificationEl.style.cssText = 'width: 100%; overflow: hidden;';
     notificationEl.dataset.id = id;
     const initialCountdown = expires ? `${Math.round((expires - Date.now()) / 1000)}秒` : '';
     notificationEl.innerHTML = `
-      <div class="flex justify-between items-start">
-        <div class="flex items-center space-x-2">
+      <div class="flex justify-between items-start" style="min-width: 0;">
+        <div class="flex items-center space-x-2" style="min-width: 0; flex-shrink: 1;">
           <span class="material-icons ${iconClass || ''}">${icon}</span>
           <span class="text-sm font-medium">${source}</span>
         </div>
-        <div class="flex items-center">
+        <div class="flex items-center" style="flex-shrink: 0;">
             <span class="countdown-timer text-xs text-gray-400 mr-2">${initialCountdown}</span>
             <span class="text-xs text-gray-400 mr-2">${time}</span>
             <button class="close-notification">&times;</button>
         </div>
       </div>
-      <p class="text-sm mt-2 break-all">${message}</p>
+      <p class="text-sm mt-2" style="word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; overflow: hidden;">${message}</p>
     `;
     if (actions && actions.length > 0) {
       const actionsContainer = document.createElement('div');
