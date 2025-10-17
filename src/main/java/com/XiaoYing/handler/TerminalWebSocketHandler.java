@@ -57,6 +57,13 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
                 session.sendMessage(new TextMessage(objectMapper.writeValueAsString(response)));
                 return;
             }
+            if ("interrupt".equals(type)) {
+                TerminalSession terminalSession = sessionManager.getSession(sessionId);
+                if (terminalSession != null) {
+                    sessionManager.interruptSession(sessionId);
+                }
+                return;
+            }
             if ("command".equals(type)) {
                 TerminalSession terminalSession = sessionManager.getSession(sessionId);
                 if (terminalSession == null) {

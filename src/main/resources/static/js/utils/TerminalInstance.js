@@ -164,11 +164,18 @@ class TerminalInstance {
           e.preventDefault();
           e.stopPropagation();
           if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            this.ws.send(JSON.stringify({ type: 'command', data: '\x03' }));
+            this.ws.send(JSON.stringify({ type: 'interrupt' }));
           }
-          e.target.contentEditable = 'false';
-          this.bodyElement.appendChild(document.createElement('br'));
-          this.currentLine = null;
+          if (this.currentLine) {
+            const command = this.currentLine.textContent.trim();
+            if (command) {
+              this.currentLine.textContent = command + '^C';
+            }
+            this.currentLine.contentEditable = 'false';
+            this.currentLine.style.color = '#888';
+            this.bodyElement.appendChild(document.createElement('br'));
+            this.currentLine = null;
+          }
         }
       }
     }, { capture: true });

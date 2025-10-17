@@ -1,6 +1,7 @@
 package com.XiaoYing.service;
 
 import com.XiaoYing.model.TerminalSession;
+import com.XiaoYing.util.WindowsProcessUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
@@ -86,6 +87,50 @@ public class TerminalSessionManager {
 
     public TerminalSession getSession(String sessionId) {
         return sessions.get(sessionId);
+    }
+
+    public boolean interruptSession(String sessionId) {
+        TerminalSession session = sessions.get(sessionId);
+        if (session == null) {
+            return false;
+        }
+        Process process = session.getProcess();
+        if (process == null || !process.isAlive()) {
+            return false;
+        }
+        try {
+            long pid = getProcessId(process);
+            if (pid == -1) {
+                System.err.println("无法获取进程ID");
+                return false;
+            }
+            return WindowsProcessUtil.sendCtrlC(pid);
+        } catch (Exception e) {
+            System.err.println("中断会话失败: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private long getProcessId(Process process) {
+        try {
+            Class<?> clazz = process.getClass();
+            if (clazz.getName().equals("java.lang.Win32Process") ||
+                clazz.getName().equals("java.lang.ProcessImpl")) {
+                java.lang.reflect.Field field = clazz.getDeclaredField("handle");
+                boolean accessible = field.isAccessible();
+                try {
+                    field.setAccessible(true);
+                    long handle = field.getLong(process);
+                    return WindowsProcessUtil.getProcessIdFromHandle(handle);
+                } finally {
+                    field.setAccessible(accessible);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("获取进程ID失败: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return -1;
     }
 
     public void closeSession(String sessionId) {
