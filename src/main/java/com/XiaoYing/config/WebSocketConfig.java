@@ -25,9 +25,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(terminalWebSocketHandler, "/ws/terminal")
-                .addInterceptors(new JwtHandshakeInterceptor(jwtUtil))
-                .setAllowedOrigins("*");
+        registry.addHandler(terminalWebSocketHandler, "/ws/terminal").addInterceptors(new JwtHandshakeInterceptor(jwtUtil)).setAllowedOrigins("*");
     }
 
     private static class JwtHandshakeInterceptor implements HandshakeInterceptor {
@@ -44,7 +42,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
             if (query == null) {
                 return false;
             }
-
             String token = null;
             String[] pairs = query.split("&");
             for (String pair : pairs) {
@@ -53,27 +50,21 @@ public class WebSocketConfig implements WebSocketConfigurer {
                     break;
                 }
             }
-
             if (token == null || token.isEmpty()) {
                 return false;
             }
-
             try {
                 String username = jwtUtil.extractUsername(token);
-                if (jwtUtil.validateToken(token, username)) {
-                    attributes.put("username", username);
-                    return true;
-                }
+                attributes.put("username", username);
+                return true;
             } catch (Exception e) {
-                System.err.println("JWT验证失败: " + e.getMessage());
+                System.err.println("JWT解析失败: " + e.getMessage());
+                return false;
             }
-
-            return false;
         }
 
         @Override
-        public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response,
-                                  WebSocketHandler wsHandler, Exception exception) {
+        public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Exception exception) {
         }
     }
 }
