@@ -224,7 +224,14 @@ class Tab {
       this.tabManager.setPathInputValue('');
       this.filterTerm = '';
       this.tabManager.filterInput.value = '';
-      const [disksResponse, diskViewTemplate] = await Promise.all([fetch('/api/disks'), this.tabManager.getTemplate('./tpl/viewMode/disk.html')]);
+      const [disksResponse, diskViewTemplate] = await Promise.all([
+        fetch('/api/disks', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        }),
+        this.tabManager.getTemplate('./tpl/viewMode/disk.html')
+      ]);
       if (!disksResponse.ok) throw new Error('Failed to load disk data');
       const disks = await disksResponse.json();
       this.allItems = disks;
@@ -270,7 +277,14 @@ class Tab {
     try {
       this.setTitle(path.split('\\').pop() || path);
       this.tabManager.setPathInputValue(path);
-      const [filesResponse, listTemplate] = await Promise.all([fetch(`/api/files?path=${encodeURIComponent(path)}`), this.tabManager.getTemplate('./tpl/viewMode/list.html')]);
+      const [filesResponse, listTemplate] = await Promise.all([
+        fetch(`/api/files?path=${encodeURIComponent(path)}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        }),
+        this.tabManager.getTemplate('./tpl/viewMode/list.html')
+      ]);
       if (!filesResponse.ok) {
         throw new Error('Failed to load file data');
       }

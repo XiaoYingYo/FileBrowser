@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+  if (!checkAuth()) {
+    return;
+  }
   function clearTempLocalStorage() {
     for (let i = localStorage.length - 1; i >= 0; i--) {
       const key = localStorage.key(i);
