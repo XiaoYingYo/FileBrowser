@@ -1,18 +1,21 @@
 package com.XiaoYing.service;
 
 import com.XiaoYing.model.TerminalSession;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class TerminalSessionManager {
     private final Map<String, TerminalSession> sessions = new ConcurrentHashMap<>();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public TerminalSession createSession(String sessionId, WebSocketSession webSocketSession,
                                         String terminalType, String workingDirectory) throws IOException {
@@ -67,7 +70,10 @@ public class TerminalSessionManager {
                 String output = new String(buffer, 0, bytesRead);
                 if (webSocketSession.isOpen()) {
                     synchronized (webSocketSession) {
-                        webSocketSession.sendMessage(new TextMessage(output));
+                        Map<String, String> msg = new HashMap<>();
+                        msg.put("type", "output");
+                        msg.put("data", output);
+                        webSocketSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(msg)));
                     }
                 }
             }

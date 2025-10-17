@@ -7,6 +7,7 @@ class TerminalInstance {
     this.ws = null;
     this.commandBuffer = '';
     this.currentLine = null;
+    this.heartbeatInterval = null;
     this.headerElement = document.createElement('div');
     this.headerElement.className = 'flex items-center bg-[#1e1e1e] px-3 py-2 border-r border-gray-700 cursor-pointer';
     this.headerElement.dataset.terminalId = this.id;
@@ -43,9 +44,19 @@ class TerminalInstance {
     this.ws.onopen = () => {
       console.log('终端 WebSocket 连接已建立');
       this.createInputLine();
+      this.startHeartbeat();
     };
     this.ws.onmessage = (event) => {
-      this.appendOutput(event.data);
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'output') {
+          this.appendOutput(msg.data);
+        } else if (msg.type === 'pong') {
+          console.log('收到心跳响应');
+        }
+      } catch (e) {
+        console.error('解析WebSocket消息失败:', e);
+      }
     };
     this.ws.onerror = (error) => {
       console.error('终端 WebSocket 错误:', error);
@@ -53,7 +64,22 @@ class TerminalInstance {
     };
     this.ws.onclose = () => {
       console.log('终端 WebSocket 连接已关闭');
+      this.stopHeartbeat();
     };
+  }
+  startHeartbeat() {
+    this.stopHeartbeat();
+    this.heartbeatInterval = setInterval(() => {
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        this.ws.send(JSON.stringify({ type: 'ping' }));
+      }
+    }, 10000);
+  }
+  stopHeartbeat() {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+    }
   }
   appendOutput(text) {
     if (this.currentLine && this.bodyElement.contains(this.currentLine)) {
@@ -126,7 +152,7 @@ class TerminalInstance {
           e.stopPropagation();
           const command = e.target.textContent.trim();
           if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            this.ws.send(command + '\r\n');
+            this.ws.send(JSON.stringify({ type: 'command', data: command + '\r\n' }));
           }
           e.target.contentEditable = 'false';
           e.target.style.color = '#888';
@@ -138,7 +164,7 @@ class TerminalInstance {
           e.preventDefault();
           e.stopPropagation();
           if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            this.ws.send('\x03');
+            this.ws.send(JSON.stringify({ type: 'command', data: '\x03' }));
           }
           e.target.contentEditable = 'false';
           this.bodyElement.appendChild(document.createElement('br'));
@@ -179,6 +205,7 @@ class TerminalInstance {
     }
   }
   close() {
+    this.stopHeartbeat();
     if (this.ws) {
       this.ws.close();
       this.ws = null;

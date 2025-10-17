@@ -2,6 +2,7 @@ package com.XiaoYing.handler;
 
 import com.XiaoYing.model.TerminalSession;
 import com.XiaoYing.service.TerminalSessionManager;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -19,6 +20,7 @@ import java.util.Map;
 public class TerminalWebSocketHandler extends TextWebSocketHandler {
     @Autowired
     private TerminalSessionManager sessionManager;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -45,20 +47,32 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String sessionId = session.getId();
-        TerminalSession terminalSession = sessionManager.getSession(sessionId);
-
-        if (terminalSession == null) {
-            return;
-        }
-
-        String command = message.getPayload();
-        BufferedWriter processInput = terminalSession.getProcessInput();
-
+        String payload = message.getPayload();
         try {
-            processInput.write(command);
-            processInput.flush();
-        } catch (IOException e) {
-            System.err.println("写入进程输入时出错: " + e.getMessage());
+            Map<String, Object> msg = objectMapper.readValue(payload, Map.class);
+            String type = (String) msg.get("type");
+            if ("ping".equals(type)) {
+                Map<String, String> response = new HashMap<>();
+                response.put("type", "pong");
+                session.sendMessage(new TextMessage(objectMapper.writeValueAsString(response)));
+                return;
+            }
+            if ("command".equals(type)) {
+                TerminalSession terminalSession = sessionManager.getSession(sessionId);
+                if (terminalSession == null) {
+                    return;
+                }
+                String command = (String) msg.get("data");
+                BufferedWriter processInput = terminalSession.getProcessInput();
+                try {
+                    processInput.write(command);
+                    processInput.flush();
+                } catch (IOException e) {
+                    System.err.println("写入进程输入时出错: " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("处理WebSocket消息时出错: " + e.getMessage());
         }
     }
 
