@@ -1,6 +1,7 @@
 package com.XiaoYing.controller;
 
 import com.XiaoYing.service.FileShareService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -211,13 +212,18 @@ public class ApiController {
     }
 
     @PostMapping("/share/create")
-    public Map<String, Object> createShare(@RequestBody Map<String, String> request, Authentication authentication) {
+    public Map<String, Object> createShare(@RequestBody Map<String, String> request, Authentication authentication, HttpServletRequest httpRequest) {
         Map<String, Object> response = new HashMap<>();
         try {
             String filePath = request.get("filePath");
             String username = authentication.getName();
             String token = fileShareService.createShare(filePath, username);
-            String shareUrl = "http://localhost:2666/share/download/" + token;
+            String scheme = httpRequest.getScheme();
+            String serverName = httpRequest.getServerName();
+            int serverPort = httpRequest.getServerPort();
+            String contextPath = httpRequest.getContextPath();
+            String baseUrl = scheme + "://" + serverName + (serverPort == 80 || serverPort == 443 ? "" : ":" + serverPort) + contextPath;
+            String shareUrl = baseUrl + "/share/download/" + token;
             response.put("success", true);
             response.put("shareUrl", shareUrl);
             response.put("token", token);
