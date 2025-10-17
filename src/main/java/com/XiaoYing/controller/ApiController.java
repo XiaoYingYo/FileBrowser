@@ -1,5 +1,8 @@
 package com.XiaoYing.controller;
 
+import com.XiaoYing.service.FileShareService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.swing.filechooser.FileSystemView;
@@ -29,6 +32,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 public class ApiController {
+    @Autowired
+    private FileShareService fileShareService;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final Map<String, Map<String, Object>> scheduledDeletions = new ConcurrentHashMap<>();
     private final Set<String> pendingDeletions = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -201,6 +206,35 @@ public class ApiController {
         } else {
             response.put("success", true);
             response.put("message", "Deletion task not found, it might have been already executed or cancelled.");
+        }
+        return response;
+    }
+
+    @PostMapping("/share/create")
+    public Map<String, Object> createShare(@RequestBody Map<String, String> request, Authentication authentication) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String filePath = request.get("filePath");
+            String username = authentication.getName();
+            String token = fileShareService.createShare(filePath, username);
+            String shareUrl = "http://localhost:2666/share/download/" + token;
+            response.put("success", true);
+            response.put("shareUrl", shareUrl);
+            response.put("token", token);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", e.getMessage());
+        }
+        return response;
+    }
+
+    @DeleteMapping("/share/{token}")
+    public Map<String, Object> deleteShare(@PathVariable String token) {
+        Map<String, Object> response = new HashMap<>();
+        boolean deleted = fileShareService.deleteShare(token);
+        response.put("success", deleted);
+        if (!deleted) {
+            response.put("message", "分享不存在或已被删除");
         }
         return response;
     }

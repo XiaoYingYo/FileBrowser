@@ -43,6 +43,7 @@ class TabManager {
     document.getElementById('copy-button').addEventListener('click', () => this.handleCopy());
     document.getElementById('paste-button').addEventListener('click', () => this.handlePaste());
     document.getElementById('rename-button').addEventListener('click', () => this.handleRename());
+    document.getElementById('share-button').addEventListener('click', () => this.handleShare());
     document.getElementById('delete-button').addEventListener('click', () => this.handleDelete());
     document.getElementById('create-button').addEventListener('click', () => this.showCreateModal());
     this.filterInput.addEventListener('input', (e) => {
@@ -251,6 +252,43 @@ class TabManager {
       }
     }
   }
+  async handleShare() {
+    const activeTab = this.getActiveTab();
+    if (!activeTab || activeTab.selectedItems.size !== 1) {
+      return;
+    }
+    const selectedFile = [...activeTab.selectedItems][0];
+    if (selectedFile.isDirectory) {
+      window.notificationCenter.addNotification({
+        type: 'error',
+        title: '分享失败',
+        message: '暂不支持文件夹分享',
+        timestamp: new Date()
+      });
+      return;
+    }
+    try {
+      const result = await callApi('/api/share/create', 'POST', {
+        filePath: selectedFile.path
+      });
+      if (result && result.success) {
+        await navigator.clipboard.writeText(result.shareUrl);
+        window.notificationCenter.addNotification({
+          type: 'success',
+          title: '分享成功',
+          message: `下载链接已复制到剪贴板\n${result.shareUrl}`,
+          timestamp: new Date()
+        });
+      }
+    } catch (error) {
+      window.notificationCenter.addNotification({
+        type: 'error',
+        title: '分享失败',
+        message: error.message || '创建分享链接时发生错误',
+        timestamp: new Date()
+      });
+    }
+  }
   addTab(initialState = null) {
     const tab = new Tab(this, initialState);
     this.tabs[tab.id] = tab;
@@ -336,6 +374,7 @@ class TabManager {
     document.getElementById('copy-button').disabled = selectedCount === 0;
     document.getElementById('delete-button').disabled = selectedCount === 0;
     document.getElementById('rename-button').disabled = selectedCount !== 1;
+    document.getElementById('share-button').disabled = selectedCount !== 1;
     const pasteButton = document.getElementById('paste-button');
     if (this.clipboard && this.clipboard.sourcePaths && this.clipboard.sourcePaths.length > 0) {
       pasteButton.disabled = false;
