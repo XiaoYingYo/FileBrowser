@@ -12,7 +12,7 @@
     <artifactId>file-browser</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>file-browser</name>
-    <description>File Browser project</description>
+    <description>File Browser</description>
     <properties>
         <java.version>18</java.version>
     </properties>
