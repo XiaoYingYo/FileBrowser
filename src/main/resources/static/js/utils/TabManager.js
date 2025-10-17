@@ -303,6 +303,7 @@ class TabManager {
       return;
     }
     const tab = this.tabs[tabId];
+    tab.destroy();
     tab.element.remove();
     tab.contentElement.remove();
     delete this.tabs[tabId];

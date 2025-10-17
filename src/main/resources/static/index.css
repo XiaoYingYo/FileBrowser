@@ -208,3 +208,20 @@ body {
 #terminal-container.collapsed #terminal-body {
   display: none;
 }
+.terminal-content-wrapper {
+  resize: vertical;
+  overflow: hidden;
+}
+.terminal-input-line {
+  min-width: 1px;
+  min-height: 1em;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.terminal-input-line:empty:before {
+  content: '\200b';
+  color: transparent;
+}
+.terminal-input-line:focus {
+  outline: none;
+}

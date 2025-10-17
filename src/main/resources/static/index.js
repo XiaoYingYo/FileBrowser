@@ -50,10 +50,18 @@ document.addEventListener('DOMContentLoaded', () => {
       tooltip.classList.add('hidden');
     });
   });
-  document.getElementById('toggle-terminal-view-button').addEventListener('click', () => {
+  document.getElementById('open-cmd-button').addEventListener('click', () => {
     const activeTab = window.tabManager.getActiveTab();
     if (activeTab) {
-      activeTab.toggleView();
+      activeTab.addTerminal('cmd');
+      activeTab.showTerminalView();
+    }
+  });
+  document.getElementById('open-powershell-button').addEventListener('click', () => {
+    const activeTab = window.tabManager.getActiveTab();
+    if (activeTab) {
+      activeTab.addTerminal('powershell');
+      activeTab.showTerminalView();
     }
   });
 });

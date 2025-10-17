@@ -67,17 +67,21 @@ class Tab {
     this.contentElement.appendChild(this.fileContentElement);
     this.terminalContentElement = document.createElement('div');
     this.terminalContentElement.id = 'terminalContent';
-    this.terminalContentElement.className = 'h-full';
+    this.terminalContentElement.className = 'terminal-content-wrapper';
     this.terminalContentElement.style.display = 'none';
     this.terminalContentElement.style.width = '100%';
+    this.terminalContentElement.style.height = '300px';
+    this.terminalContentElement.style.minHeight = '200px';
+    this.terminalContentElement.style.maxHeight = '500px';
     this.terminalContentElement.style.borderTop = '2px solid #333333';
-    this.terminalContentElement.innerHTML = `<div class="terminal-container flex flex-col h-full" style="width: 100%;">
-        <div class="terminal-tabs flex border-b border-gray-700">
+    this.terminalContentElement.style.flexShrink = '0';
+    this.terminalContentElement.innerHTML = `<div class="terminal-container flex flex-col h-full" style="width: 100%; height: 100%;">
+        <div class="terminal-tabs flex border-b border-gray-700 flex-shrink-0">
           <button class="p-2 hover:bg-gray-700 rounded-full add-terminal-btn">
             <span class="material-icons text-base">add</span>
           </button>
         </div>
-        <div class="terminal-bodies flex-grow relative">
+        <div class="terminal-bodies flex-grow relative overflow-hidden">
         </div>
       </div>`;
     this.contentElement.appendChild(this.terminalContentElement);
@@ -96,7 +100,12 @@ class Tab {
     }
   }
   showTerminalView() {
+    this.contentElement.style.display = 'flex';
+    this.contentElement.style.flexDirection = 'column';
     this.fileContentElement.style.display = 'block';
+    this.fileContentElement.style.flexGrow = '1';
+    this.fileContentElement.style.minHeight = '0';
+    this.fileContentElement.style.overflowY = 'auto';
     this.terminalContentElement.style.display = 'flex';
     this.isTerminalViewActive = true;
     if (this.terminals.size === 0) {
@@ -112,9 +121,9 @@ class Tab {
     this.terminalContentElement.style.display = 'none';
     this.isTerminalViewActive = false;
   }
-  addTerminal(initialPath = null) {
+  addTerminal(type = 'cmd', initialPath = null) {
     const path = initialPath !== null ? initialPath : this.history[this.historyIndex] || '';
-    const terminal = new TerminalInstance(this.id, path);
+    const terminal = new TerminalInstance(this.id, path, type);
     this.terminals.set(terminal.id, terminal);
     const headerContainer = this.terminalContentElement.querySelector('.terminal-tabs');
     const bodyContainer = this.terminalContentElement.querySelector('.terminal-bodies');
@@ -141,6 +150,7 @@ class Tab {
   closeTerminal(terminalId) {
     const terminal = this.terminals.get(terminalId);
     if (!terminal) return;
+    terminal.close();
     terminal.headerElement.remove();
     terminal.bodyElement.remove();
     this.terminals.delete(terminalId);
@@ -439,5 +449,11 @@ class Tab {
       filterTerm: this.filterTerm,
       scrollTop: this.scrollTop,
     };
+  }
+  destroy() {
+    this.terminals.forEach(terminal => {
+      terminal.close();
+    });
+    this.terminals.clear();
   }
 }
