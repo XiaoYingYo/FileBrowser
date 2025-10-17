@@ -34,6 +34,51 @@ async function refreshAccessToken() {
   }
 }
 
+async function fetchWithAuth(url, method = 'GET') {
+  const token = localStorage.getItem('accessToken');
+  const options = {
+    method: method,
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+    credentials: 'include',
+  };
+  const response = await fetch(url, options);
+  if (response.status === 401) {
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        failedQueue.push({ resolve, reject });
+      })
+        .then((token) => {
+          options.headers['Authorization'] = `Bearer ${token}`;
+          return fetch(url, options).then((res) => res.json());
+        })
+        .catch((err) => {
+          throw err;
+        });
+    }
+    isRefreshing = true;
+    try {
+      const newToken = await refreshAccessToken();
+      processQueue(null, newToken);
+      options.headers['Authorization'] = `Bearer ${newToken}`;
+      const retryResponse = await fetch(url, options);
+      if (!retryResponse.ok) {
+        throw new Error(`HTTP error! status: ${retryResponse.status}`);
+      }
+      return await retryResponse.json();
+    } catch (refreshError) {
+      processQueue(refreshError, null);
+      throw refreshError;
+    } finally {
+      isRefreshing = false;
+    }
+  }
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  return await response.json();
+}
 async function callApi(url, method = 'POST', payload = null) {
   const token = localStorage.getItem('accessToken');
   try {
@@ -74,7 +119,7 @@ async function callApi(url, method = 'POST', payload = null) {
           throw new Error(`HTTP error! status: ${retryResponse.status}`);
         }
         const result = await retryResponse.json();
-        if (!result.success) {
+        if (result.success === false) {
           throw new Error(result.error || 'API operation failed');
         }
         return result;
@@ -89,7 +134,7 @@ async function callApi(url, method = 'POST', payload = null) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const result = await response.json();
-    if (!result.success) {
+    if (result.success === false) {
       throw new Error(result.error || 'API operation failed');
     }
     return result;

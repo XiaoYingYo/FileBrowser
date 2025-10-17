@@ -234,16 +234,11 @@ class Tab {
       this.tabManager.setPathInputValue('');
       this.filterTerm = '';
       this.tabManager.filterInput.value = '';
-      const [disksResponse, diskViewTemplate] = await Promise.all([
-        fetch('/api/disks', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-          }
-        }),
+      const [disks, diskViewTemplate] = await Promise.all([
+        fetchWithAuth('/api/disks', 'GET'),
         this.tabManager.getTemplate('./tpl/viewMode/disk.html')
       ]);
-      if (!disksResponse.ok) throw new Error('Failed to load disk data');
-      const disks = await disksResponse.json();
+      if (!disks) throw new Error('Failed to load disk data');
       this.allItems = disks;
       const diskItemTemplateMatch = diskViewTemplate.match(/<for>([\s\S]*?)<\/for>/);
       if (!diskItemTemplateMatch) throw new Error('Disk item template not found');
@@ -287,18 +282,13 @@ class Tab {
     try {
       this.setTitle(path.split('\\').pop() || path);
       this.tabManager.setPathInputValue(path);
-      const [filesResponse, listTemplate] = await Promise.all([
-        fetch(`/api/files?path=${encodeURIComponent(path)}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-          }
-        }),
+      const [data, listTemplate] = await Promise.all([
+        fetchWithAuth(`/api/files?path=${encodeURIComponent(path)}`, 'GET'),
         this.tabManager.getTemplate('./tpl/viewMode/list.html')
       ]);
-      if (!filesResponse.ok) {
+      if (!data) {
         throw new Error('Failed to load file data');
       }
-      const data = await filesResponse.json();
       this.allItems = [...data.directories, ...data.files];
       const parser = new DOMParser();
       const doc = parser.parseFromString(listTemplate, 'text/html');

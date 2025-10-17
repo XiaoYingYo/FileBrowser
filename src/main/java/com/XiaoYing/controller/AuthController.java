@@ -61,7 +61,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(@CookieValue(name = "refreshToken", required = false) String refreshToken) {
+    public ResponseEntity<?> refresh(@CookieValue(name = "refreshToken", required = false) String refreshToken, HttpServletResponse response) {
         if (refreshToken == null) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
@@ -73,6 +73,12 @@ public class AuthController {
             String username = jwtUtil.extractUsername(refreshToken);
             if (jwtUtil.validateToken(refreshToken, username)) {
                 String newAccessToken = jwtUtil.generateAccessToken(username);
+                String newRefreshToken = jwtUtil.generateRefreshToken(username);
+                Cookie refreshCookie = new Cookie("refreshToken", newRefreshToken);
+                refreshCookie.setHttpOnly(true);
+                refreshCookie.setPath("/");
+                refreshCookie.setMaxAge(7 * 24 * 60 * 60);
+                response.addCookie(refreshCookie);
                 Map<String, Object> responseBody = new HashMap<>();
                 responseBody.put("success", true);
                 responseBody.put("accessToken", newAccessToken);
