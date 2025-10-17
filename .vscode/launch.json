@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+        "type": "java",
+        "name": "FileBrowserApplication",
+        "request": "launch",
+        "mainClass": "com.XiaoYing.FileBrowserApplication",
+        "projectName": "file-browser"
+    }
+]
+}
