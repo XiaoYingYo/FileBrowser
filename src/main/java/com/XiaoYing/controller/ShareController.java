@@ -29,20 +29,15 @@ public class ShareController {
             @PathVariable String token,
             @RequestHeader(value = "Range", required = false) String rangeHeader) {
         try {
-            System.out.println("下载请求: token=" + token + ", Range=" + rangeHeader);
             ShareInfo shareInfo = fileShareService.getShareInfo(token);
             if (shareInfo == null) {
-                System.out.println("分享信息未找到: " + token);
                 return ResponseEntity.notFound().build();
             }
-            System.out.println("找到分享: " + shareInfo.getFilePath());
             File file = new File(shareInfo.getFilePath());
             if (!file.exists() || !file.isFile()) {
-                System.out.println("文件不存在: " + shareInfo.getFilePath());
                 return ResponseEntity.notFound().build();
             }
             long fileLength = file.length();
-            System.out.println("文件大小: " + fileLength);
             String fileName;
             try {
                 fileName = URLEncoder.encode(shareInfo.getFileName(), StandardCharsets.UTF_8.name());
@@ -50,7 +45,6 @@ public class ShareController {
                 fileName = shareInfo.getFileName();
             }
             Resource resource = new FileSystemResource(file);
-            System.out.println("返回完整文件,大小: " + fileLength);
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
