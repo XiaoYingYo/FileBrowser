@@ -170,12 +170,19 @@ class TerminalInstance {
             const command = this.currentLine.textContent.trim();
             if (command) {
               this.currentLine.textContent = command + '^C';
+            } else {
+              this.currentLine.textContent = '^C';
             }
             this.currentLine.contentEditable = 'false';
             this.currentLine.style.color = '#888';
             this.bodyElement.appendChild(document.createElement('br'));
             this.currentLine = null;
           }
+          setTimeout(() => {
+            if (!this.currentLine || !this.bodyElement.contains(this.currentLine)) {
+              this.createInputLine(true);
+            }
+          }, 100);
         }
       }
     }, { capture: true });

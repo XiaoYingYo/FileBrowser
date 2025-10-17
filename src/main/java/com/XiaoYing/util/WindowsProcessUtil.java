@@ -50,7 +50,6 @@ public class WindowsProcessUtil {
                 Thread.currentThread().interrupt();
             }
             boolean result = kernel32.GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0);
-            System.out.println("发送Ctrl+C信号到进程组, 结果: " + result);
             try {
                 Thread.sleep(50);
             } catch (InterruptedException ie) {
