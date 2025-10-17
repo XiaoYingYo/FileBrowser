@@ -40,15 +40,32 @@ public class WindowsProcessUtil {
             Kernel32Extended kernel32 = Kernel32Extended.INSTANCE;
             kernel32.FreeConsole();
             if (!kernel32.AttachConsole(processId)) {
+                System.err.println("无法附加到进程控制台: PID=" + processId);
                 return false;
             }
             kernel32.SetConsoleCtrlHandler(null, true);
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            }
             boolean result = kernel32.GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0);
-            kernel32.FreeConsole();
+            System.out.println("发送Ctrl+C信号到进程组, 结果: " + result);
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            }
             kernel32.SetConsoleCtrlHandler(null, false);
+            kernel32.FreeConsole();
             return result;
         } catch (Exception e) {
             System.err.println("发送Ctrl+C信号失败: " + e.getMessage());
+            e.printStackTrace();
+            try {
+                Kernel32Extended.INSTANCE.FreeConsole();
+            } catch (Exception ex) {
+            }
             return false;
         }
     }
